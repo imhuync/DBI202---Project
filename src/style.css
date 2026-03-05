@@ -1495,6 +1495,7 @@ body::before {
         width: 280px;
         min-width: 280px;
         z-index: 200;
+        transition: left var(--transition-slow);
     }
 
     .sidebar.open {
@@ -1508,6 +1509,7 @@ body::before {
 
     .top-bar {
         padding: var(--space-md);
+        gap: var(--space-md);
     }
 
     .page-container {
@@ -1516,6 +1518,9 @@ body::before {
 
     .page-title {
         font-size: var(--font-md);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .search-box {
@@ -1524,6 +1529,7 @@ body::before {
 
     .stats-grid {
         grid-template-columns: 1fr 1fr;
+        gap: var(--space-md);
     }
 
     .form-row {
@@ -1538,6 +1544,84 @@ body::before {
         max-width: 100%;
         margin: var(--space-md);
         padding: var(--space-lg);
+    }
+
+    /* Table mobile view - Card layout */
+    .data-table,
+    .data-table thead,
+    .data-table tbody,
+    .data-table th,
+    .data-table td,
+    .data-table tr {
+        display: block;
+    }
+
+    .data-table thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+
+    .data-table tr {
+        margin-bottom: var(--space-md);
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        padding: var(--space-sm);
+    }
+
+    .data-table td {
+        border: none;
+        position: relative;
+        padding-left: 50% !important;
+        text-align: right;
+        min-height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    .data-table td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: var(--space-md);
+        width: 45%;
+        text-align: left;
+        font-weight: 700;
+        font-size: var(--font-xs);
+        color: var(--text-secondary);
+        text-transform: uppercase;
+    }
+
+    .data-table-wrapper {
+        margin: 0;
+        padding: 0;
+        overflow: visible;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .page-header-left {
+        width: 100%;
+    }
+
+    .filter-group {
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: var(--space-xs);
+    }
+
+    .modal-actions,
+    .modal-footer {
+        flex-direction: column-reverse;
+    }
+
+    .modal-actions .btn,
+    .modal-footer .btn {
+        width: 100%;
     }
 }
 

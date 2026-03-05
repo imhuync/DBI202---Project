@@ -48,12 +48,12 @@ export function renderRooms(): string {
             ${DB.roomTypes.map(rt => {
     const count = DB.rooms.filter(r => r.type_id === rt.type_id).length;
     return `<tr>
-                          <td><strong>#${rt.type_id}</strong></td>
-                          <td><span class="badge badge-primary">${rt.type_name}</span></td>
-                          <td><strong>${formatVND(rt.base_price)}</strong></td>
-                          <td>${rt.max_capacity} người</td>
-                          <td style="max-width:250px;color:var(--text-secondary);font-size:var(--font-xs)">${rt.description || ''}</td>
-                          <td>${count}</td>
+                          <td data-label="Mã"><strong>#${rt.type_id}</strong></td>
+                          <td data-label="Loại phòng"><span class="badge badge-primary">${rt.type_name}</span></td>
+                          <td data-label="Giá niêm yết"><strong>${formatVND(rt.base_price)}</strong></td>
+                          <td data-label="Sức chứa">${rt.max_capacity} người</td>
+                          <td data-label="Mô tả" style="max-width:250px;color:var(--text-secondary);font-size:var(--font-xs)">${rt.description || ''}</td>
+                          <td data-label="Số phòng">${count}</td>
                         </tr>`;
   }).join('')}
           </tbody>

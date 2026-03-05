@@ -56,12 +56,12 @@ function renderEmpRows(emps: typeof DB.employees): string {
     // Manager không thể sửa/xóa tài khoản Admin
     const canEdit = isAdmin || e.role !== 'Admin';
     return `<tr>
-      <td><strong>#${e.emp_id}</strong></td>
-      <td><div class="entity-name"><div class="entity-avatar">${getInitials(e.full_name)}</div>${e.full_name}</div></td>
-      <td><span class="badge ${roleBadge[e.role]}">${roleLabel[e.role] || e.role}</span></td>
-      <td><code style="color:var(--text-secondary);font-size:var(--font-xs)">${e.username}</code></td>
-      <td>${bookingCount}</td>
-      <td>
+      <td data-label="Mã"><strong>#${e.emp_id}</strong></td>
+      <td data-label="Họ tên"><div class="entity-name"><div class="entity-avatar">${getInitials(e.full_name)}</div>${e.full_name}</div></td>
+      <td data-label="Chức vụ"><span class="badge ${roleBadge[e.role]}">${roleLabel[e.role] || e.role}</span></td>
+      <td data-label="Tài khoản"><code style="color:var(--text-secondary);font-size:var(--font-xs)">${e.username}</code></td>
+      <td data-label="Bookings">${bookingCount}</td>
+      <td data-label="Thao tác">
         <div class="action-btns">
           ${canEdit ? `
           <button class="action-btn edit" data-edit-emp="${e.emp_id}" title="Sửa">

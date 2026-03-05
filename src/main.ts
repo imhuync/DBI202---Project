@@ -78,9 +78,11 @@ function handleRoute(): void {
         item.classList.toggle('active', navPage === hash);
     });
 
-    // Close mobile sidebar
+    // Close mobile sidebar and backdrop
     $sidebar().classList.remove('open');
+    document.getElementById('sidebarBackdrop')?.classList.remove('active');
 }
+
 
 function updateSidebarForRole(_role: string): void {
     const navItems = document.querySelectorAll('.nav-item');
@@ -152,6 +154,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mobile menu toggle
     document.getElementById('mobileMenuBtn')?.addEventListener('click', () => {
         $sidebar().classList.toggle('open');
+        document.getElementById('sidebarBackdrop')?.classList.toggle('active');
+    });
+
+    // Close sidebar when clicking backdrop
+    document.getElementById('sidebarBackdrop')?.addEventListener('click', () => {
+        $sidebar().classList.remove('open');
+        document.getElementById('sidebarBackdrop')?.classList.remove('active');
     });
 });
+
 

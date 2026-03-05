@@ -33,13 +33,13 @@ function renderGuestRows(guests: Guest[]): string {
   return guests.map(g => {
     const ac = g.nationality !== 'Vietnam' ? 'green' : '';
     return `<tr>
-      <td><strong>#${g.guest_id}</strong></td>
-      <td><div class="entity-name"><div class="entity-avatar ${ac}">${getInitials(g.full_name)}</div>${g.full_name}</div></td>
-      <td>${g.email || ''}</td>
-      <td>${g.phone || ''}</td>
-      <td><code style="color:var(--text-secondary);font-size:var(--font-xs)">${g.id_card}</code></td>
-      <td><span class="badge ${g.nationality === 'Vietnam' ? 'badge-info' : 'badge-primary'}">${g.nationality}</span></td>
-      <td>
+      <td data-label="ID"><strong>#${g.guest_id}</strong></td>
+      <td data-label="Họ tên"><div class="entity-name"><div class="entity-avatar ${ac}">${getInitials(g.full_name)}</div>${g.full_name}</div></td>
+      <td data-label="Email">${g.email || ''}</td>
+      <td data-label="Điện thoại">${g.phone || ''}</td>
+      <td data-label="CMND/CCCD"><code style="color:var(--text-secondary);font-size:var(--font-xs)">${g.id_card}</code></td>
+      <td data-label="Quốc tịch"><span class="badge ${g.nationality === 'Vietnam' ? 'badge-info' : 'badge-primary'}">${g.nationality}</span></td>
+      <td data-label="Thao tác">
         <div class="action-btns">
           <button class="action-btn edit" data-edit-guest="${g.guest_id}" title="Sửa">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>

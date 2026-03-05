@@ -45,19 +45,19 @@ function renderBookingRows(filter?: string): string {
     const canCancel = b.status === 'Pending' || b.status === 'Confirmed';
 
     return `<tr>
-      <td><strong>#${b.booking_id}</strong></td>
-      <td>
+      <td data-label="Mã"><strong>#${b.booking_id}</strong></td>
+      <td data-label="Khách hàng">
         <div class="entity-name">
           <div class="entity-avatar">${getInitials(guest.full_name)}</div>
           <div><div>${guest.full_name}</div><div style="font-size:var(--font-xs);color:var(--text-secondary)">${guest.phone}</div></div>
         </div>
       </td>
-      <td><strong>${roomNums}</strong></td>
-      <td>${formatDate(b.expected_checkin)}</td>
-      <td>${formatDate(b.expected_checkout)}</td>
-      <td>${b.total_deposit ? formatVND(b.total_deposit) : '—'}</td>
-      <td><span class="badge ${badgeMap[b.status]}">${b.status}</span></td>
-      <td>
+      <td data-label="Phòng"><strong>${roomNums}</strong></td>
+      <td data-label="Check-in">${formatDate(b.expected_checkin)}</td>
+      <td data-label="Check-out">${formatDate(b.expected_checkout)}</td>
+      <td data-label="Tiền cọc">${b.total_deposit ? formatVND(b.total_deposit) : '—'}</td>
+      <td data-label="Trạng thái"><span class="badge ${badgeMap[b.status]}">${b.status}</span></td>
+      <td data-label="Thao tác">
         <div class="action-btns">
           <button class="action-btn" data-view-booking="${b.booking_id}" title="Chi tiết">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -155,12 +155,12 @@ function bindBookingActions(): void {
         </div>
         <h4 style="margin:var(--space-md) 0 var(--space-sm)">Phòng (${details.length}):</h4>
         <div class="data-table-wrapper"><table class="data-table"><thead><tr><th>Phòng</th><th>Loại</th><th>Giá booking</th><th>Check-in thực tế</th></tr></thead><tbody>
-          ${details.map(d => { const r = getRoom(d.room_id); const t = getRoomType(r); return `<tr><td><strong>${r.room_number || '?'}</strong></td><td>${t?.type_name || '?'}</td><td>${formatVND(d.price_at_booking)}</td><td>${formatDateTime(d.actual_checkin)}</td></tr>`; }).join('')}
+          ${details.map(d => { const r = getRoom(d.room_id); const t = getRoomType(r); return `<tr><td data-label="Phòng"><strong>${r.room_number || '?'}</strong></td><td data-label="Loại">${t?.type_name || '?'}</td><td data-label="Giá booking">${formatVND(d.price_at_booking)}</td><td data-label="Check-in thực tế">${formatDateTime(d.actual_checkin)}</td></tr>`; }).join('')}
         </tbody></table></div>
         ${usages.length ? `
           <h4 style="margin:var(--space-md) 0 var(--space-sm)">Dịch vụ sử dụng (${usages.length}):</h4>
           <div class="data-table-wrapper"><table class="data-table"><thead><tr><th>Dịch vụ</th><th>SL</th><th>Thành tiền</th></tr></thead><tbody>
-            ${usages.map(u => { const s = getService(u.service_id); return `<tr><td>${s.service_name}</td><td>${u.quantity}</td><td>${formatVND(u.total_price)}</td></tr>`; }).join('')}
+            ${usages.map(u => { const s = getService(u.service_id); return `<tr><td data-label="Dịch vụ">${s.service_name}</td><td data-label="SL">${u.quantity}</td><td data-label="Thành tiền">${formatVND(u.total_price)}</td></tr>`; }).join('')}
           </tbody></table></div>` : ''}
       `);
     });

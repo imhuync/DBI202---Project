@@ -143,10 +143,10 @@ export function renderDashboard(): string {
     const guest = getGuest(b.guest_id);
     const sc = b.status === 'Confirmed' ? 'badge-success' : b.status === 'Pending' ? 'badge-warning' : b.status === 'Completed' ? 'badge-info' : 'badge-danger';
     return `<tr>
-                  <td><strong>#${b.booking_id}</strong></td>
-                  <td><div class="entity-name"><div class="entity-avatar">${getInitials(guest.full_name)}</div>${guest.full_name}</div></td>
-                  <td>${formatDate(b.expected_checkin)}</td>
-                  <td><span class="badge ${sc}">${b.status}</span></td>
+                  <td data-label="Mã"><strong>#${b.booking_id}</strong></td>
+                  <td data-label="Khách hàng"><div class="entity-name"><div class="entity-avatar">${getInitials(guest.full_name)}</div>${guest.full_name}</div></td>
+                  <td data-label="Check-in">${formatDate(b.expected_checkin)}</td>
+                  <td data-label="Trạng thái"><span class="badge ${sc}">${b.status}</span></td>
                 </tr>`;
   }).join('')}
             </tbody>

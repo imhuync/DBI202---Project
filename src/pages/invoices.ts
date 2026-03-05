@@ -47,15 +47,15 @@ export function renderInvoices(): string {
     const booking = DB.bookings.find(b => b.booking_id === inv.booking_id)!;
     const guest = getGuest(booking.guest_id);
     return `<tr>
-                <td><strong>#${inv.invoice_id}</strong></td>
-                <td><span class="badge badge-info">#${inv.booking_id}</span></td>
-                <td><div class="entity-name"><div class="entity-avatar">${getInitials(guest.full_name)}</div>${guest.full_name}</div></td>
-                <td>${formatVND(inv.room_charge)}</td>
-                <td>${formatVND(inv.service_charge)}</td>
-                <td>${formatVND(inv.tax_amount)}</td>
-                <td style="color:var(--danger)">${formatVND(-inv.discount_amount)}</td>
-                <td><strong>${formatVND(inv.final_amount)}</strong></td>
-                <td><span class="badge badge-success">${inv.payment_method}</span></td>
+                <td data-label="Mã HĐ"><strong>#${inv.invoice_id}</strong></td>
+                <td data-label="Booking"><span class="badge badge-info">#${inv.booking_id}</span></td>
+                <td data-label="Khách hàng"><div class="entity-name"><div class="entity-avatar">${getInitials(guest.full_name)}</div>${guest.full_name}</div></td>
+                <td data-label="Tiền phòng">${formatVND(inv.room_charge)}</td>
+                <td data-label="Dịch vụ">${formatVND(inv.service_charge)}</td>
+                <td data-label="Thuế">${formatVND(inv.tax_amount)}</td>
+                <td data-label="Giảm giá" style="color:var(--danger)">${formatVND(-inv.discount_amount)}</td>
+                <td data-label="Tổng TT"><strong>${formatVND(inv.final_amount)}</strong></td>
+                <td data-label="PT Thanh toán"><span class="badge badge-success">${inv.payment_method}</span></td>
               </tr>`;
   }).join('')}
           </tbody>

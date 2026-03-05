@@ -37,11 +37,11 @@ export function renderServices(): string {
             ${[...DB.serviceUsages].sort((a, b) => new Date(b.used_at).getTime() - new Date(a.used_at).getTime()).map(u => {
     const svc = getService(u.service_id);
     return `<tr>
-                <td>#${u.usage_id}</td>
-                <td><strong>${svc.service_name}</strong></td>
-                <td>${u.quantity} ${svc.unit}</td>
-                <td>${formatVND(u.total_price)}</td>
-                <td>${formatDateTime(u.used_at)}</td>
+                <td data-label="Mã">#${u.usage_id}</td>
+                <td data-label="Dịch vụ"><strong>${svc.service_name}</strong></td>
+                <td data-label="SL">${u.quantity} ${svc.unit}</td>
+                <td data-label="Thành tiền">${formatVND(u.total_price)}</td>
+                <td data-label="Thời gian">${formatDateTime(u.used_at)}</td>
               </tr>`;
   }).join('')}
           </tbody>
