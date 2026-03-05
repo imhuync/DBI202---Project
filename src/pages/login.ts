@@ -27,9 +27,7 @@ export function renderLoginPage(): string {
                     <button type="submit" class="btn btn-primary btn-block" id="loginBtn">Đăng nhập</button>
                     
                     <div class="login-help">
-                        <span>Quên mật khẩu? Liên hệ quản lý.</span><br>
-                        <small style="color:var(--text-muted);font-size:10px;margin-top:5px;display:block">Demo: admin / admin (no DB required)</small>
-                    </div>
+                        <span>Quên mật khẩu? Liên hệ admin/quản lý.</span><br>
                 </form>
             </div>
         </div>
