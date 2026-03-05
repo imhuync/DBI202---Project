@@ -162,9 +162,8 @@ function renderResults(): void {
         });
         dropdown.innerHTML = html;
 
-        // Add click listeners
         dropdown.querySelectorAll('.search-item').forEach(item => {
-            item.addEventListener('click', (e) => {
+            item.addEventListener('click', () => {
                 const index = parseInt((item as HTMLElement).dataset.index!);
                 navigateTo(currentResults[index].page);
                 hideDropdown();
