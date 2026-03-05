@@ -40,7 +40,8 @@ export async function fetchDB(): Promise<void> {
         DB.serviceUsages = serviceUsages;
         DB.invoices = invoices;
     } catch (error) {
-        console.error('Failed to fetch data from API:', error);
+        console.error('Failed to fetch data from API, running in offline/demo mode:', error);
+        // We keep existing DB (which might be empty or hardcoded in data.ts)
     }
 }
 

