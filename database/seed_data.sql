@@ -122,3 +122,36 @@ VALUES
     (3, 5, 3600000, 0, 360000, 100000, 3860000, '2026-03-18 11:50', N'Transfer'),
     (4, 7, 1700000, 180000, 188000, 0, 2068000, '2026-03-21 11:45', N'E-Wallet');
 SET IDENTITY_INSERT INVOICE OFF;
+
+-- =============================================
+-- RESEED IDENTITY COLUMNS
+-- =============================================
+DECLARE @max_id INT;
+
+SELECT @max_id = ISNULL(MAX(type_id), 0) FROM ROOM_TYPE;
+IF @max_id > 0 DBCC CHECKIDENT ('ROOM_TYPE', RESEED, @max_id);
+
+SELECT @max_id = ISNULL(MAX(room_id), 0) FROM ROOM;
+IF @max_id > 0 DBCC CHECKIDENT ('ROOM', RESEED, @max_id);
+
+SELECT @max_id = ISNULL(MAX(guest_id), 0) FROM GUEST;
+IF @max_id > 0 DBCC CHECKIDENT ('GUEST', RESEED, @max_id);
+
+SELECT @max_id = ISNULL(MAX(emp_id), 0) FROM EMPLOYEE;
+IF @max_id > 0 DBCC CHECKIDENT ('EMPLOYEE', RESEED, @max_id);
+
+SELECT @max_id = ISNULL(MAX(service_id), 0) FROM SERVICE;
+IF @max_id > 0 DBCC CHECKIDENT ('SERVICE', RESEED, @max_id);
+
+SELECT @max_id = ISNULL(MAX(booking_id), 0) FROM BOOKING;
+IF @max_id > 0 DBCC CHECKIDENT ('BOOKING', RESEED, @max_id);
+
+SELECT @max_id = ISNULL(MAX(detail_id), 0) FROM BOOKING_DETAIL;
+IF @max_id > 0 DBCC CHECKIDENT ('BOOKING_DETAIL', RESEED, @max_id);
+
+SELECT @max_id = ISNULL(MAX(usage_id), 0) FROM SERVICE_USAGE;
+IF @max_id > 0 DBCC CHECKIDENT ('SERVICE_USAGE', RESEED, @max_id);
+
+SELECT @max_id = ISNULL(MAX(invoice_id), 0) FROM INVOICE;
+IF @max_id > 0 DBCC CHECKIDENT ('INVOICE', RESEED, @max_id);
+GO

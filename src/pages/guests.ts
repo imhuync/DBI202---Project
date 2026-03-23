@@ -98,8 +98,8 @@ function openGuestModal(id?: number): void {
       }
       await fetchDB();
       closeModal(); navigateTo('guests');
-    } catch (err) {
-      showToast('Lỗi khi lưu thông tin khách hàng', 'error');
+    } catch (err: any) {
+      showToast(err.message || 'Lỗi khi lưu thông tin khách hàng', 'error');
     }
   });
 }

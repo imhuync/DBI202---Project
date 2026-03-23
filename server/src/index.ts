@@ -82,7 +82,13 @@ app.get('/api/rooms', async (req, res) => {
              JOIN ROOM_TYPE rt ON r.type_id = rt.type_id`
         );
         res.json(rooms);
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 app.get('/api/room-types', async (req, res) => {
@@ -92,7 +98,13 @@ app.get('/api/room-types', async (req, res) => {
             'SELECT * FROM ROOM_TYPE'
         );
         res.json(roomTypes);
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 app.post('/api/room-types', async (req, res) => {
@@ -115,7 +127,13 @@ app.post('/api/room-types', async (req, res) => {
             );
         }
         res.status(201).json({ success: true });
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 app.get('/api/guests', async (req, res) => {
@@ -125,7 +143,13 @@ app.get('/api/guests', async (req, res) => {
             'SELECT * FROM GUEST'
         );
         res.json(guests);
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 app.get('/api/employees', async (req, res) => {
@@ -135,7 +159,13 @@ app.get('/api/employees', async (req, res) => {
             'SELECT emp_id, full_name, role, username FROM EMPLOYEE'
         );
         res.json(employees);
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 app.get('/api/bookings', async (req, res) => {
@@ -145,7 +175,13 @@ app.get('/api/bookings', async (req, res) => {
             'SELECT * FROM BOOKING'
         );
         res.json(bookings);
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 app.get('/api/booking-details', async (req, res) => {
@@ -155,7 +191,13 @@ app.get('/api/booking-details', async (req, res) => {
             'SELECT * FROM BOOKING_DETAIL'
         );
         res.json(details);
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 app.get('/api/services', async (req, res) => {
@@ -165,7 +207,13 @@ app.get('/api/services', async (req, res) => {
             'SELECT * FROM SERVICE'
         );
         res.json(services);
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 app.get('/api/service-usages', async (req, res) => {
@@ -175,7 +223,13 @@ app.get('/api/service-usages', async (req, res) => {
             'SELECT * FROM SERVICE_USAGE'
         );
         res.json(usages);
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 app.get('/api/invoices', async (req, res) => {
@@ -185,7 +239,13 @@ app.get('/api/invoices', async (req, res) => {
             'SELECT * FROM INVOICE'
         );
         res.json(invoices);
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 /* ── Business Logic (Calling Stored Procedures) ── */
@@ -266,7 +326,13 @@ app.post('/api/bookings', async (req, res) => {
 
             throw err;
         }
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 // Check-In
@@ -309,7 +375,13 @@ app.post('/api/check-in', async (req, res) => {
             }
         }
         res.json({ success: true });
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 // Check-Out
@@ -348,7 +420,13 @@ app.post('/api/check-out', async (req, res) => {
             }
         }
         res.json({ success: true });
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 // Add Service Usage
@@ -372,7 +450,13 @@ app.post('/api/service-usages', async (req, res) => {
             );
         }
         res.status(201).json({ success: true });
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 // Generate Invoice
@@ -438,7 +522,13 @@ app.post('/api/generate-invoice', async (req, res) => {
         }
 
         res.json({ success: true, finalAmount });
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 // Update Room Status
@@ -456,7 +546,13 @@ app.post('/api/rooms/update-status', async (req, res) => {
             await executeQueryResult('UPDATE ROOM SET status = @status WHERE room_id = @room_id', params);
         }
         res.json({ success: true });
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 // Create Room
@@ -480,7 +576,13 @@ app.post('/api/rooms', async (req, res) => {
             );
         }
         res.status(201).json({ success: true });
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 // Update Room
@@ -505,7 +607,13 @@ app.post('/api/rooms/update', async (req, res) => {
             );
         }
         res.json({ success: true });
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 // Delete Room
@@ -565,7 +673,13 @@ app.post('/api/guests/update', async (req, res) => {
             );
         }
         res.json({ success: true });
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 // Create Guest
@@ -590,7 +704,13 @@ app.post('/api/guests', async (req, res) => {
             );
         }
         res.status(201).json({ success: true });
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 // Update Employee
@@ -615,7 +735,13 @@ app.post('/api/employees/update', async (req, res) => {
             );
         }
         res.json({ success: true });
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 // Create Employee
@@ -639,7 +765,13 @@ app.post('/api/employees', async (req, res) => {
             );
         }
         res.status(201).json({ success: true });
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 // Reset Employee Password
@@ -660,7 +792,13 @@ app.post('/api/employees/reset-password', async (req, res) => {
             );
         }
         res.json({ success: true });
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 // Delete Employee
@@ -679,7 +817,13 @@ app.delete('/api/employees/:id', async (req, res) => {
             ]);
         }
         res.json({ success: true });
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 // Update Service
@@ -704,7 +848,13 @@ app.post('/api/services/update', async (req, res) => {
             );
         }
         res.json({ success: true });
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 // Create Service
@@ -727,7 +877,13 @@ app.post('/api/services', async (req, res) => {
             );
         }
         res.status(201).json({ success: true });
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 // Delete Service
@@ -758,7 +914,13 @@ app.delete('/api/services/:id', async (req, res) => {
             ]);
         }
         res.json({ success: true });
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 // Delete Guest
@@ -789,7 +951,13 @@ app.delete('/api/guests/:id', async (req, res) => {
             ]);
         }
         res.json({ success: true });
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        if (err.number === 2627 || err.number === 2601) {
+            return res.status(409).json({ error: 'Dữ liệu (CMND/CCCD, Username, Số phòng...) đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!' });
+        }
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 // Login
@@ -817,7 +985,10 @@ app.post('/api/login', async (req, res) => {
         } else {
             res.status(401).json({ error: 'Invalid credentials' });
         }
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 // Change Password
@@ -858,7 +1029,10 @@ app.post('/api/employees/change-password', async (req, res) => {
             );
         }
         res.json({ success: true });
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 // Cancel Booking
@@ -876,7 +1050,10 @@ app.post('/api/bookings/cancel', async (req, res) => {
             );
         }
         res.json({ success: true });
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 // Confirm Booking
@@ -894,7 +1071,10 @@ app.post('/api/bookings/confirm', async (req, res) => {
             );
         }
         res.json({ success: true });
-    } catch (err) { res.status(500).send(err); }
+    } catch (err: any) { 
+        console.error('API Error:', err); 
+        res.status(500).json({ error: err.message || 'Internal Server Error' }); 
+    }
 });
 
 app.listen(port, () => {
