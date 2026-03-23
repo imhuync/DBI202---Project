@@ -1,7 +1,7 @@
 /* =============================================
    DASHBOARD PAGE
    ============================================= */
-import { DB, formatVND, formatDate, getGuest, getRoomType, getInitials } from '../data';
+import { DB, formatVND, formatDate, getGuest, getRoomType, getInitials, lastFetchError } from '../data';
 
 export function renderDashboard(): string {
   const totalRooms = DB.rooms.length;
@@ -10,7 +10,15 @@ export function renderDashboard(): string {
   const activeBookings = DB.bookings.filter(b => ['Confirmed', 'Pending'].includes(b.status)).length;
   const totalRevenue = DB.invoices.reduce((sum, inv) => sum + inv.final_amount, 0);
   const todayGuests = DB.bookingDetails.filter(bd => bd.actual_checkin && !bd.actual_checkout).length;
-  const occupancyRate = Math.round((occupied / totalRooms) * 100);
+  const occupancyRate = totalRooms > 0 ? Math.round((occupied / totalRooms) * 100) : 0;
+  const loadWarning = lastFetchError
+    ? `
+      <div class="section-panel glass-panel" style="margin-bottom:var(--space-xl);border-color:rgba(255,184,77,.35);background:rgba(255,184,77,.08)">
+        <div style="color:var(--warning);font-weight:700;margin-bottom:4px">Không tải được dữ liệu từ API</div>
+        <div style="color:var(--text-secondary);font-size:var(--font-sm)">Kiểm tra backend, SQL Server, hoặc file seed/stored procedure. Lỗi gần nhất: ${lastFetchError}</div>
+      </div>
+    `
+    : '';
 
   const recentBookings = [...DB.bookings]
     .sort((a, b) => new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime())
@@ -94,6 +102,7 @@ export function renderDashboard(): string {
     .slice(0, 20);
 
   return `
+    ${loadWarning}
     <div class="stats-grid">
       <div class="stat-card glass-panel stat-purple">
         <div class="stat-header">

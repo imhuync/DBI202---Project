@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Quản Lý Khách Sạn - DBI202</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.5);
+            --secondary: #a855f7;
+            --accent: #f43f5e;
+            --bg-dark: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        /* Background effects */
+        .bg-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.15) 0%, transparent 40%);
+        }
+
+        /* Slide Container */
+        .presentation-container {
+            width: 90vw;
+            height: 85vh;
+            max-width: 1200px;
+            position: relative;
+            perspective: 1000px;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 4rem;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0.95) translateY(20px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: auto;
+            z-index: 10;
+        }
+
+        .slide.prev {
+            transform: scale(0.9) translateY(-100%);
+            opacity: 0;
+        }
+
+        /* Slide Content Styles */
+        .slide-header {
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--primary);
+            padding-left: 1.5rem;
+        }
+
+        .slide-header h2 {
+            font-size: 3rem;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .slide-content {
+            font-size: 1.25rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+
+        .slide-content ul {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .slide-content li {
+            position: relative;
+            padding-left: 2rem;
+            margin-bottom: 1rem;
+            animation: fadeIn 0.5s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .slide-content li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        /* Title Slide Decorations */
+        .title-slide {
+            text-align: center;
+            align-items: center;
+        }
+
+        .title-slide h1 {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px var(--primary-glow));
+        }
+
+        .title-slide p {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+        }
+
+        .badge {
+            background: var(--primary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 99px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            display: inline-block;
+        }
+
+        /* Code/SQL Block */
+        pre {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: #d1d5db;
+            overflow-x: auto;
+            border: 1px solid var(--glass-border);
+            margin-top: 1rem;
+        }
+
+        code {
+            color: var(--primary);
+        }
+
+        /* Grid for SQL details */
+        .db-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .db-card {
+            background: var(--glass);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .db-card h3 {
+            color: var(--primary);
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Navigation Controls */
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+        }
+
+        .nav-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            transition: width 0.3s ease;
+            z-index: 101;
+        }
+
+        .slide-number {
+            position: fixed;
+            bottom: 2.5rem;
+            left: 2rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-glow"></div>
+    <div class="progress-bar" id="progress"></div>
+    <div class="slide-number" id="slideNum">1 / 20</div>
+
+    <div class="presentation-container" id="presentation">
+        <!-- SLIDE 1: TITLE -->
+        <div class="slide active title-slide">
+            <span class="badge">DBI202 Project</span>
+            <h1>Hotel Management System</h1>
+            <p>Giải pháp quản lý khách sạn hiện đại & thông minh</p>
+            <div style="margin-top: 3rem; font-weight: 600; color: #fff;">
+                Họ và tên: [Tên của bạn]<br>
+                Mã số sinh viên: [MSSV]
+            </div>
+        </div>
+
+        <!-- SLIDE 2: INTRODUCTION -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Giới thiệu dự án</h2>
+            </div>
+            <div class="slide-content">
+                <ul>
+                    <li style="animation-delay: 0.1s">Dự án tập trung vào việc số hóa quy trình vận hành của một khách sạn quy mô vừa và lớn.</li>
+                    <li style="animation-delay: 0.2s">Giải quyết các vấn đề về quản lý phòng trống, đặt phòng chồng chéo và tính toán hóa đơn phức tạp.</li>
+                    <li style="animation-delay: 0.3s"><strong>Đặc điểm nổi bật:</strong> Toàn bộ thao tác với dữ liệu (Business Logic) được viết bằng MSSQL.</li>
+                    <li style="animation-delay: 0.4s">Công nghệ cốt lõi: SQL Server cho tầng dữ liệu và Modern Web cho tầng ứng dụng.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: CORE FEATURES -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Tính năng chính</h2>
+            </div>
+            <div class="slide-content">
+                <div class="db-grid">
+                    <div class="db-card">
+                        <h3>Lưu trú</h3>
+                        <p>Quản lý đặt phòng (Booking), nhận phòng (Check-in) và trả phòng (Check-out) nhanh chóng.</p>
+                    </div>
+                    <div class="db-card">
+                        <h3>Dịch vụ</h3>
+                        <p>Tích hợp gọi món, giặt là, spa vào trực tiếp hóa đơn phòng của khách hàng.</p>
+                    </div>
+                    <div class="db-card">
+                        <h3>Tài chính</h3>
+                        <p>Tự động hóa tính toán hóa đơn, thuế VAT và các khoản chiết khấu/đặt cọc.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: TECHNOLOGY STACK -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Công nghệ sử dụng</h2>
+            </div>
+            <div class="slide-content">
+                <ul>
+                    <li><strong>Backend (MSSQL):</strong> 100% logic xử lý tại Stored Procedures giúp tối ưu hiệu năng và bảo mật.</li>
+                    <li><strong>Server (Node.js):</strong> Đóng vai trò cầu nối (Bridge), chỉ gọi SP và không chứa logic tính toán.</li>
+                    <li><strong>Frontend:</strong> Vite + TypeScript + Vanilla CSS tạo trải nghiệm mượt mà, tối ưu hiệu năng.</li>
+                    <li><strong>Data Security:</strong> Ràng buộc dữ liệu (Constraints) và Transaction được xử lý triệt để tại DB.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: DATABASE SCHEMA -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Thiết kế Cơ sở dữ liệu</h2>
+            </div>
+            <div class="slide-content">
+                <p>Hệ thống bao gồm <strong>9 bảng</strong> chính được thiết kế chuẩn hóa để tránh dư thừa dữ liệu:</p>
+                <div class="db-grid" style="margin-top: 2rem;">
+                    <div class="db-card"><h4>Core</h4>ROOM, ROOM_TYPE, GUEST</div>
+                    <div class="db-card"><h4>Operational</h4>BOOKING, BOOKING_DETAIL</div>
+                    <div class="db-card"><h4>Financial</h4>SERVICE, SERVICE_USAGE, INVOICE, EMPLOYEE</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: ER DIAGRAM -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Mối quan hệ (Entity Relationship)</h2>
+            </div>
+            <div class="slide-content">
+                <ul>
+                    <li><strong>GUEST - BOOKING:</strong> Mối quan hệ 1-N (Một khách hàng có thể có nhiều lần đặt phòng).</li>
+                    <li><strong>BOOKING - ROOM:</strong> Thông qua bảng trung gian BOOKING_DETAIL để hỗ trợ đặt nhiều phòng trong một đơn.</li>
+                    <li><strong>SERVICE_USAGE:</strong> Liên kết với BOOKING_DETAIL để biết dịch vụ được dùng bởi phòng nào, khách nào.</li>
+                    <li><strong>INVOICE:</strong> Liên kết 1-1 với BOOKING để tổng kết toàn bộ chi phí.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SLIDE 7: ROOM MANAGEMENT -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Quản lý phòng (ROOM)</h2>
+            </div>
+            <div class="slide-content">
+                <pre>
+CREATE TABLE ROOM (
+    room_id INT IDENTITY PRIMARY KEY,
+    room_number NVARCHAR(10) UNIQUE,
+    status NVARCHAR(20) CHECK (...), -- Clean, Dirty, Occupied
+    floor INT
+);</pre>
+                <ul style="margin-top: 1rem;">
+                    <li>Mỗi phòng thuộc một loại phòng (ROOM_TYPE) quy định giá cơ bản và sức chứa.</li>
+                    <li>Trạng thái phòng tự động cập nhật khi khách Check-in hoặc Check-out.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: GUEST & EMPLOYEE -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Khách hàng & Nhân viên</h2>
+            </div>
+            <div class="slide-content">
+                <div class="db-grid">
+                    <div class="db-card">
+                        <h3>GUEST</h3>
+                        <p>Lưu trữ: Họ tên, Email, CCCD (Unique), Quốc tịch. Mã định danh hỗ trợ khách hàng thân thiết.</p>
+                    </div>
+                    <div class="db-card">
+                        <h3>EMPLOYEE</h3>
+                        <p>Quản lý: Tài khoản đăng nhập, Vai trò (Receptionist, Manager, Housekeeper).</p>
+                    </div>
+                    <div class="db-card">
+                        <h3>Bảo mật</h3>
+                        <p>Sử dụng Password Hashing và Role-based Access Control (RBAC).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 9: BOOKING SYSTEM -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Quy trình Đặt phòng</h2>
+            </div>
+            <div class="slide-content">
+                <ul>
+                    <li><strong>BOOKING:</strong> Lưu thông tin chung như ngày tạo, nhân viên phụ trách, tiền cọc.</li>
+                    <li><strong>BOOKING_DETAIL:</strong> Lưu chi tiết từng phòng, giá tại thời điểm đặt (tránh biến động giá sau này).</li>
+                    <li>Hỗ trợ trạng thái: Pending -> Confirmed -> Completed/Cancelled.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SLIDE 10: SERVICES -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Dịch vụ & Tiện ích</h2>
+            </div>
+            <div class="slide-content">
+                <pre>
+CREATE TABLE SERVICE_USAGE (
+    usage_id INT PRIMARY KEY,
+    booking_detail_id INT, -- Link to room
+    service_id INT,
+    quantity INT,
+    total_price DECIMAL(12,2)
+);</pre>
+                <p>Mỗi khi khách hàng sử dụng dịch vụ, hệ thống sẽ log lại thời gian và tính toán thành tiền tức thì dựa trên đơn giá tại bảng SERVICE.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 11: INVOICING -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Hệ thống Hóa đơn (INVOICE)</h2>
+            </div>
+            <div class="slide-content">
+                <ul>
+                    <li>Tự động tổng hợp <code>room_charge</code> (tiền phòng) và <code>service_charge</code> (tiền dịch vụ).</li>
+                    <li>Áp dụng thuế suất mặc định (10% VAT).</li>
+                    <li>Hỗ trợ nhiều phương thức thanh toán: Tiền mặt, Thẻ, Chuyển khoản, Ví điện tử.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SLIDE 12: STORED PROCEDURES (1) -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Nghiệp vụ: Stored Procedures</h2>
+            </div>
+            <div class="slide-content">
+                <pre>
+-- 100% Task thực hiện qua SP:
+CREATE PROCEDURE sp_CheckIn @detail_id INT AS
+BEGIN
+    BEGIN TRANSACTION;
+    -- Cập nhật Booking Detail, Room Status & Booking Status
+    COMMIT TRANSACTION;
+END;</pre>
+                <p>Việc đóng gói toàn bộ logic vào SP giúp ứng dụng cực kỳ ổn định, dễ bảo trì và mở rộng khi logic nghiệp vụ thay đổi.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 13: STORED PROCEDURES (2) -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Nghiệp vụ: CRUD & Tính toán</h2>
+            </div>
+            <div class="slide-content">
+                <ul>
+                    <li><strong>CRUD Phòng/Khách:</strong> Thực hiện qua <code>sp_CreateRoom</code>, <code>sp_UpdateGuest</code>...</li>
+                    <li><strong>Logic Dịch vụ:</strong> <code>sp_AddServiceUsage</code> tự động tính giá từ danh mục gốc.</li>
+                    <li><strong>Đảm bảo:</strong> Không một câu lệnh SQL <code>INSERT/UPDATE</code> nào nằm ngoài Stored Procedure.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SLIDE 14: THE BRAIN: INVOICE GENERATION -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Nghiệp vụ: Tính toán hóa đơn</h2>
+            </div>
+            <div class="slide-content">
+                <p>Thủ tục <code>sp_GenerateInvoice</code> là "bộ não" của hệ thống tài chính:</p>
+                <pre>
+-- Logic tính toán trong SP:
+SET tax_amount = (room_charge + service_charge) * 0.1;
+SET final_amount = (room_charge + service_charge + tax) - discount;</pre>
+                <p>Nó quét qua toàn bộ <code>BOOKING_DETAIL</code> và <code>SERVICE_USAGE</code> liên quan để đưa ra con số cuối cùng chính xác nhất.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 15: ARCHITECTURE DESIGN -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Kiến trúc Ứng dụng</h2>
+            </div>
+            <div class="slide-content">
+                <ul>
+                    <li><strong>DB-Centric Architecture:</strong> SQL Server giữ vai trò là "nguồn sự thật duy nhất".</li>
+                    <li><strong>Node.js Bridge:</strong> Backend gọn nhẹ, chỉ chịu trách nhiệm định tuyến (Routing) và xác thực.</li>
+                    <li><strong>Mạnh mẽ:</strong> Dễ dàng thay đổi Framework Frontend/Backend mà không làm hỏng Logic nghiệp vụ tại DB.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SLIDE 16: UI - DASHBOARD -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Giao diện Dashboard</h2>
+            </div>
+            <div class="slide-content">
+                <ul>
+                    <li>Tổng quan số lượng phòng đang sử dụng, phòng cần dọn dẹp.</li>
+                    <li>Biểu đồ thống kê doanh thu theo ngày/tháng (Mockup).</li>
+                    <li>Thông báo các đơn đặt phòng sắp đến hạn check-in.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SLIDE 17: UI - BOOKING MANAGEMENT -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Giao diện Quản lý Đặt phòng</h2>
+            </div>
+            <div class="slide-content">
+                <ul>
+                    <li>Bộ lọc thông minh theo tên khách hàng hoặc mã phòng.</li>
+                    <li>Quick Actions: Check-in/Check-out chỉ với 1 click.</li>
+                    <li>Form đăng ký đặt phòng đơn giản, tự động gợi ý danh sách phòng trống.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SLIDE 18: UI - ROOMS & SERVICES -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Quản lý Danh mục</h2>
+            </div>
+            <div class="slide-content">
+                <ul>
+                    <li>Giao diện dạng Grid hiển thị trực quan sơ đồ phòng theo tầng.</li>
+                    <li>Màu sắc phân biệt trạng thái (Xanh: Trống, Đỏ: Đang ở, Vàng: Bẩn).</li>
+                    <li>Quản lý bảng giá dịch vụ linh hoạt cho Admin.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SLIDE 19: CHALLENGES & SOLUTIONS -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Thách thức & Giải pháp</h2>
+            </div>
+            <div class="slide-content">
+                <ul>
+                    <li><strong>Thách thức:</strong> Duy trì tính nhất quán logic khi ứng dụng mở rộng.</li>
+                    <li><strong>Giải pháp:</strong> Tập trung 100% Business Logic tại MSSQL, dễ dàng kiểm soát và debug.</li>
+                    <li><strong>Thách thức:</strong> Trải nghiệm người dùng trên thiết bị di động.</li>
+                    <li><strong>Giải pháp:</strong> Xây dựng Mobile-first CSS với Grid và Flexbox.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SLIDE 20: CONCLUSION -->
+        <div class="slide title-slide">
+            <h1>Cảm ơn bạn đã lắng nghe!</h1>
+            <p>Rất mong nhận được phản hồi và góp ý.</p>
+            <div style="margin-top: 4rem;">
+                <button class="nav-btn" onclick="goToSlide(0)" style="width: auto; height: auto; padding: 1rem 2rem; border-radius: 99px;">
+                    Xem lại từ đầu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="nav-btn" id="prevBtn" title="Previous (Left Arrow)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <button class="nav-btn" id="nextBtn" title="Next (Right Arrow / Space)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+    </div>
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const progress = document.getElementById('progress');
+        const slideNum = document.getElementById('slideNum');
+        const nextBtn = document.getElementById('nextBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        
+        let currentSlide = 0;
+
+        function updateSlide() {
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active', 'prev');
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                } else if (index < currentSlide) {
+                    slide.classList.add('prev');
+                }
+            });
+
+            // Update Progress
+            const percent = ((currentSlide + 1) / slides.length) * 100;
+            progress.style.width = percent + '%';
+            
+            // Update Number
+            slideNum.innerText = (currentSlide + 1) + ' / ' + slides.length;
+        }
+
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                updateSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlide();
+            }
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            updateSlide();
+        }
+
+        // Event Listeners
+        nextBtn.addEventListener('click', nextSlide);
+        prevBtn.addEventListener('click', prevSlide);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+            }
+        });
+
+        // Touch support
+        let touchstartX = 0;
+        let touchendX = 0;
+
+        document.addEventListener('touchstart', e => {
+            touchstartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', e => {
+            touchendX = e.changedTouches[0].screenX;
+            handleGesture();
+        });
+
+        function handleGesture() {
+            if (touchendX < touchstartX - 50) nextSlide();
+            if (touchendX > touchstartX + 50) prevSlide();
+        }
+
+        // Initialize display
+        updateSlide();
+    </script>
+</body>
+</html>

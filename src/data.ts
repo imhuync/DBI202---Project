@@ -13,6 +13,8 @@ export let DB: Database = {
     invoices: [],
 };
 
+export let lastFetchError: string | null = null;
+
 export async function fetchDB(): Promise<void> {
     try {
         const [
@@ -39,7 +41,9 @@ export async function fetchDB(): Promise<void> {
         DB.services = services;
         DB.serviceUsages = serviceUsages;
         DB.invoices = invoices;
+        lastFetchError = null;
     } catch (error) {
+        lastFetchError = error instanceof Error ? error.message : 'Unknown API error';
         console.error('Failed to fetch data from API, running in offline/demo mode:', error);
         // We keep existing DB (which might be empty or hardcoded in data.ts)
     }

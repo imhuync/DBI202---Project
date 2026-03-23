@@ -1,149 +1,124 @@
 -- =============================================
--- HOTEL MANAGEMENT SYSTEM - SAMPLE DATA
--- SQL SERVER COMPATIBLE
+-- HOTEL MANAGEMENT SYSTEM - REALISTIC SAMPLE DATA
+-- SQL SERVER COMPATIBLE - V1.1 (ENRICHED)
 -- =============================================
 
--- =============================================
--- 1. ROOM_TYPE
--- =============================================
+USE HotelDB;
+GO
+
+-- 1. ROOM_TYPE (Standard to Luxury)
 SET IDENTITY_INSERT ROOM_TYPE ON;
-INSERT INTO ROOM_TYPE
-    (type_id, type_name, base_price, max_capacity, description)
-VALUES
-    (1, N'Single', 500000, 1, N'Phòng đơn, 1 giường đơn, WiFi, TV, minibar'),
-    (2, N'Double', 800000, 2, N'Phòng đôi, 1 giường lớn, WiFi, TV, minibar, ban công'),
-    (3, N'Twin', 850000, 2, N'Phòng 2 giường đơn, WiFi, TV, minibar'),
-    (4, N'VIP Suite', 2000000, 4, N'Phòng VIP, phòng khách riêng, jacuzzi, view thành phố'),
-    (5, N'Family', 1200000, 4, N'Phòng gia đình, 2 giường lớn, khu vui chơi trẻ em');
+INSERT INTO ROOM_TYPE (type_id, type_name, base_price, max_capacity, description)
+VALUES 
+    (1, N'Standard Single', 450000, 1, N'Phòng tiêu chuẩn 1 giường đơn, WiFi tốc độ cao, TV LED, Minibar, Phù hợp khách công tác.'),
+    (2, N'Deluxe Double', 850000, 2, N'Phòng cao cấp 1 giường đôi lớn, Ban công hướng phố, WiFi, TV cáp, Bồn tắm nằm.'),
+    (3, N'Executive Twin', 1200000, 2, N'Phòng thương gia với 2 giường đơn, Không gian làm việc riêng, View biển tầng cao.'),
+    (4, N'VIP Penthouse', 5500000, 4, N'Căn hộ tầng mái siêu sang, 2 phòng ngủ, Bếp riêng, Jacuzzi, Đặc quyền bữa sáng tại phòng.'),
+    (5, N'Grand Family', 1800000, 4, N'Phòng gia đình rộng rãi, 2 giường lớn, Khu vực sofa, WiFi, Phù hợp du lịch gia đình.');
 SET IDENTITY_INSERT ROOM_TYPE OFF;
 
--- =============================================
--- 2. ROOM
--- =============================================
+-- 2. ROOM (20 Rooms across 5 Floors)
 SET IDENTITY_INSERT ROOM ON;
-INSERT INTO ROOM
-    (room_id, room_number, type_id, status, floor)
-VALUES
-    (1, N'101', 1, N'Clean', 1),
-    (2, N'102', 1, N'Occupied', 1),
-    (3, N'103', 2, N'Clean', 1),
-    (4, N'104', 3, N'Clean', 1),
-    (5, N'201', 2, N'Clean', 2),
-    (6, N'202', 2, N'Dirty', 2),
-    (7, N'203', 3, N'Clean', 2),
-    (8, N'204', 5, N'Occupied', 2),
-    (9, N'301', 4, N'Clean', 3),
-    (10, N'302', 4, N'Maintenance', 3),
-    (11, N'303', 5, N'Clean', 3),
-    (12, N'304', 1, N'Clean', 3);
+INSERT INTO ROOM (room_id, room_number, type_id, status, floor)
+VALUES 
+    (1, N'101', 1, N'Clean', 1), (2, N'102', 1, N'Clean', 1), (3, N'103', 1, N'Occupied', 1), (4, N'104', 2, N'Clean', 1),
+    (5, N'201', 2, N'Occupied', 2), (6, N'202', 2, N'Dirty', 2), (7, N'203', 3, N'Clean', 2), (8, N'204', 3, N'Occupied', 2),
+    (9, N'301', 2, N'Maintenance', 3), (10, N'302', 3, N'Clean', 3), (11, N'303', 5, N'Occupied', 3), (12, N'304', 5, N'Clean', 3),
+    (13, N'401', 3, N'Clean', 4), (14, N'402', 3, N'Clean', 4), (15, N'403', 3, N'Clean', 4), (16, N'404', 5, N'Clean', 4),
+    (17, N'501', 4, N'Occupied', 5), (18, N'502', 4, N'Clean', 5), (19, N'105', 1, N'Clean', 1), (20, N'205', 2, N'Clean', 2);
 SET IDENTITY_INSERT ROOM OFF;
 
--- =============================================
--- 3. GUEST
--- =============================================
+-- 3. GUEST (Realistic Vietnamese and International Guests)
 SET IDENTITY_INSERT GUEST ON;
-INSERT INTO GUEST
-    (guest_id, full_name, email, phone, id_card, nationality)
-VALUES
-    (1, N'Nguyễn Văn An', N'an.nguyen@email.com', N'0901234567', N'001099012345', N'Vietnam'),
-    (2, N'Trần Thị Bình', N'binh.tran@email.com', N'0912345678', N'001099012346', N'Vietnam'),
-    (3, N'Lê Hoàng Cường', N'cuong.le@email.com', N'0923456789', N'001099012347', N'Vietnam'),
-    (4, N'Phạm Minh Đức', N'duc.pham@email.com', N'0934567890', N'001099012348', N'Vietnam'),
-    (5, N'John Smith', N'john.smith@email.com', N'+1234567890', N'P12345678', N'USA'),
-    (6, N'Tanaka Yuki', N'yuki.tanaka@email.com', N'+8190123456', N'J98765432', N'Japan'),
-    (7, N'Võ Thị Hạnh', N'hanh.vo@email.com', N'0945678901', N'001099012349', N'Vietnam'),
-    (8, N'Park Min Young', N'minyoung@email.com', N'+8210987654', N'K55667788', N'Korea');
+INSERT INTO GUEST (guest_id, full_name, email, phone, id_card, nationality)
+VALUES 
+    (1, N'Nguyễn Minh Hoàng', N'hoang.nm@gmail.com', N'0909123456', N'079095001234', N'Vietnam'),
+    (2, N'Lê Thị Phương Thảo', N'phuongthao.le@outlook.com', N'0918234567', N'079196005678', N'Vietnam'),
+    (3, N'Trần Đại Nghĩa', N'nghia.td@viettel.vn', N'0985345678', N'079201009012', N'Vietnam'),
+    (4, N'Phạm Bảo Nam', N'nam.pham@fpt.com', N'0334455667', N'079301012345', N'Vietnam'),
+    (5, N'Jennifer Lopez', N'jennifer.l@yahoo.com', N'+14159876543', N'A87654321', N'USA'),
+    (6, N'Kenji Yamamoto', N'yamamoto.k@sony.jp', N'+819011223344', N'J11223344', N'Japan'),
+    (7, N'David Beckham', N'david.b@gmail.com', N'+447788990011', N'P00112233', N'UK'),
+    (8, N'Vũ Hoàng Anh Kiệt', N'kietpba@gmail.com', N'0987654321', N'030102040302', N'Vietnam'),
+    (9, N'Trương Mỹ Lan', N'lan.truong@vtp.vn', N'0944556677', N'079123456789', N'Vietnam'),
+    (10, N'Phan Đình Phùng', N'phung.pd@history.vn', N'0123456789', N'001095012341', N'Vietnam'),
+    (11, N'Maria Sharapova', N'maria.s@tennis.ru', N'+79001234567', N'R12345678', N'Russia'),
+    (12, N'Lý Quí Khánh', N'khanh.lq@fashion.vn', N'0901112233', N'079188002233', N'Vietnam');
 SET IDENTITY_INSERT GUEST OFF;
 
--- =============================================
--- 4. EMPLOYEE
--- =============================================
+-- 4. EMPLOYEE (Realistic Roles)
 SET IDENTITY_INSERT EMPLOYEE ON;
-INSERT INTO EMPLOYEE
-    (emp_id, full_name, role, username, password_hash)
-VALUES
-    (1, N'Hoàng Quản Lý', N'Manager', N'manager01', N'hash_password_01'),
-    (2, N'Nguyễn Lễ Tân A', N'Receptionist', N'receptionist01', N'hash_password_02'),
-    (3, N'Trần Lễ Tân B', N'Receptionist', N'receptionist02', N'hash_password_03'),
-    (4, N'Lê Văn Phục Vụ', N'Housekeeper', N'housekeeper01', N'hash_password_04');
+INSERT INTO EMPLOYEE (emp_id, full_name, role, username, password_hash)
+VALUES 
+    (1, N'Trần Văn Quản Trị', N'Admin', N'admin', N'admin123'),
+    (2, N'Lê Thị Tuyết Mai', N'Manager', N'mai.manager', N'pass123'),
+    (3, N'Nguyễn Minh Tú', N'Receptionist', N'tu.reception', N'pass123'),
+    (4, N'Phạm Hồng Ngọc', N'Receptionist', N'ngoc.reception', N'pass123'),
+    (5, N'Lý Tiểu Long', N'Housekeeper', N'long.hk', N'pass123');
 SET IDENTITY_INSERT EMPLOYEE OFF;
 
--- =============================================
--- 5. BOOKING
--- =============================================
-SET IDENTITY_INSERT BOOKING ON;
-INSERT INTO BOOKING
-    (booking_id, guest_id, emp_id, booking_date, expected_checkin, expected_checkout, status, total_deposit)
-VALUES
-    (1, 1, 2, '2026-03-01 10:00:00', '2026-03-05 14:00:00', '2026-03-07 12:00:00', N'Confirmed', 500000),
-    (2, 2, 2, '2026-03-02 09:30:00', '2026-03-04 14:00:00', '2026-03-06 12:00:00', N'Confirmed', 800000),
-    (3, 5, 3, '2026-03-01 15:00:00', '2026-03-03 14:00:00', '2026-03-08 12:00:00', N'Confirmed', 2000000),
-    (4, 3, 2, '2026-03-03 11:00:00', '2026-03-10 14:00:00', '2026-03-12 12:00:00', N'Pending', 0),
-    (5, 6, 3, '2026-02-28 08:00:00', '2026-03-01 14:00:00', '2026-03-03 12:00:00', N'Completed', 1200000),
-    (6, 4, 2, '2026-03-04 14:00:00', '2026-03-06 14:00:00', '2026-03-09 12:00:00', N'Pending', 0),
-    (7, 7, 3, '2026-02-25 10:00:00', '2026-02-26 14:00:00', '2026-02-28 12:00:00', N'Cancelled', 0);
-SET IDENTITY_INSERT BOOKING OFF;
-
--- =============================================
--- 6. BOOKING_DETAIL
--- =============================================
-SET IDENTITY_INSERT BOOKING_DETAIL ON;
-INSERT INTO BOOKING_DETAIL
-    (detail_id, booking_id, room_id, actual_checkin, actual_checkout, price_at_booking)
-VALUES
-    (1, 1, 2, '2026-03-05 14:20:00', NULL, 500000),
-    (2, 2, 3, '2026-03-04 14:10:00', NULL, 800000),
-    (3, 3, 9, '2026-03-03 14:05:00', NULL, 2000000),
-    (4, 3, 11, '2026-03-03 14:30:00', NULL, 1200000),
-    (5, 4, 1, NULL, NULL, 500000),
-    (6, 5, 8, '2026-03-01 14:15:00', '2026-03-03 11:45:00', 1200000),
-    (7, 5, 7, '2026-03-01 14:20:00', '2026-03-03 11:50:00', 850000),
-    (8, 6, 5, NULL, NULL, 800000),
-    (9, 6, 4, NULL, NULL, 850000);
-SET IDENTITY_INSERT BOOKING_DETAIL OFF;
-
--- =============================================
--- 7. SERVICE
--- =============================================
+-- 5. SERVICE (Expanded List)
 SET IDENTITY_INSERT SERVICE ON;
-INSERT INTO SERVICE
-    (service_id, service_name, unit_price, unit)
-VALUES
-    (1, N'Giặt ủi', 50000, N'Kg'),
-    (2, N'Minibar - Nước ngọt', 30000, N'Lon'),
-    (3, N'Minibar - Bia', 45000, N'Lon'),
-    (4, N'Bữa sáng buffet', 150000, N'Người'),
-    (5, N'Spa & Massage', 300000, N'Giờ'),
-    (6, N'Xe đưa đón sân bay', 250000, N'Lượt'),
-    (7, N'Phòng gym', 80000, N'Lần'),
-    (8, N'Thuê xe máy', 150000, N'Ngày');
+INSERT INTO SERVICE (service_id, service_name, unit_price, unit)
+VALUES 
+    (1, N'Giặt ủi - Tiêu chuẩn', 45000, N'Kg'),
+    (2, N'Giặt hấp - Cao cấp', 120000, N'Cái'),
+    (3, N'Minibar - Heineken', 45000, N'Lon'),
+    (4, N'Minibar - Coca Cola', 25000, N'Lon'),
+    (5, N'Minibar - Snack Pringles', 65000, N'Hộp'),
+    (6, N'Bữa sáng Buffet', 250000, N'Suất'),
+    (7, N'Spa - Massage Toàn thân', 450000, N'Giờ'),
+    (8, N'Xe đưa đón Sân bay', 350000, N'Lượt'),
+    (9, N'Thuê xe máy tự lái', 180000, N'Ngày'),
+    (10, N'City Tour nửa ngày', 600000, N'Khách');
 SET IDENTITY_INSERT SERVICE OFF;
 
--- =============================================
+-- 6. BOOKING (Mixed Statuses)
+SET IDENTITY_INSERT BOOKING ON;
+INSERT INTO BOOKING (booking_id, guest_id, emp_id, booking_date, expected_checkin, expected_checkout, status, total_deposit)
+VALUES 
+    (1, 1, 3, '2026-03-10', '2026-03-15', '2026-03-17', N'Completed', 500000),
+    (2, 2, 3, '2026-03-12', '2026-03-18', '2026-03-20', N'Completed', 1000000),
+    (3, 3, 4, '2026-03-20', '2026-03-22', '2026-03-25', N'Confirmed', 0),
+    (4, 5, 4, '2026-03-21', '2026-03-23', '2026-03-28', N'Confirmed', 2000000),
+    (5, 6, 3, '2026-03-15', '2026-03-16', '2026-03-18', N'Completed', 0),
+    (6, 8, 4, '2026-03-22', '2026-03-23', '2026-03-24', N'Pending', 0),
+    (7, 11, 3, '2026-03-18', '2026-03-19', '2026-03-21', N'Completed', 500000),
+    (8, 12, 4, '2026-03-22', '2026-03-25', '2026-03-27', N'Confirmed', 0);
+SET IDENTITY_INSERT BOOKING OFF;
+
+-- 7. BOOKING_DETAIL
+SET IDENTITY_INSERT BOOKING_DETAIL ON;
+INSERT INTO BOOKING_DETAIL (detail_id, booking_id, room_id, actual_checkin, actual_checkout, price_at_booking)
+VALUES 
+    (1, 1, 3, '2026-03-15 14:05', '2026-03-17 11:30', 450000),
+    (2, 2, 5, '2026-03-18 13:50', '2026-03-20 12:00', 850000),
+    (3, 3, 8, '2026-03-22 14:20', NULL, 1200000),
+    (4, 4, 17, '2026-03-23 14:00', NULL, 5500000),
+    (5, 5, 11, '2026-03-16 14:10', '2026-03-18 11:50', 1800000),
+    (6, 6, 4, NULL, NULL, 850000),
+    (7, 7, 6, '2026-03-19 14:30', '2026-03-21 11:45', 850000),
+    (8, 8, 10, NULL, NULL, 1200000);
+SET IDENTITY_INSERT BOOKING_DETAIL OFF;
+
 -- 8. SERVICE_USAGE
--- =============================================
 SET IDENTITY_INSERT SERVICE_USAGE ON;
-INSERT INTO SERVICE_USAGE
-    (usage_id, booking_detail_id, service_id, quantity, used_at, total_price)
-VALUES
-    (1, 1, 4, 1, '2026-03-05 07:00:00', 150000),
-    (2, 1, 2, 3, '2026-03-05 20:00:00', 90000),
-    (3, 3, 5, 2, '2026-03-04 10:00:00', 600000),
-    (4, 3, 6, 1, '2026-03-03 08:00:00', 250000),
-    (5, 3, 4, 2, '2026-03-04 07:00:00', 300000),
-    (6, 6, 4, 2, '2026-03-02 07:00:00', 300000),
-    (7, 6, 1, 3, '2026-03-02 09:00:00', 150000),
-    (8, 6, 8, 1, '2026-03-02 08:00:00', 150000),
-    (9, 7, 3, 4, '2026-03-01 21:00:00', 180000),
-    (10, 7, 7, 2, '2026-03-02 06:00:00', 160000);
+INSERT INTO SERVICE_USAGE (usage_id, booking_detail_id, service_id, quantity, used_at, total_price)
+VALUES 
+    (1, 1, 6, 1, '2026-03-16 07:30', 250000),
+    (2, 1, 4, 2, '2026-03-16 20:00', 50000),
+    (3, 2, 8, 1, '2026-03-20 12:15', 350000),
+    (4, 4, 7, 2, '2026-03-23 16:00', 900000),
+    (5, 4, 1, 3, '2026-03-23 09:00', 135000),
+    (6, 7, 3, 4, '2026-03-20 21:00', 180000);
 SET IDENTITY_INSERT SERVICE_USAGE OFF;
 
--- =============================================
--- 9. INVOICE
--- =============================================
+-- 9. INVOICE (Matching Completed Bookings)
 SET IDENTITY_INSERT INVOICE ON;
-INSERT INTO INVOICE
-    (invoice_id, booking_id, room_charge, service_charge, tax_amount, discount_amount, final_amount, payment_date, payment_method)
-VALUES
-    (1, 5, 2050000, 940000, 299000, 100000, 3189000, '2026-03-03 12:00:00', N'Card');
+INSERT INTO INVOICE (invoice_id, booking_id, room_charge, service_charge, tax_amount, discount_amount, final_amount, payment_date, payment_method)
+VALUES 
+    (1, 1, 900000, 300000, 120000, 50000, 1270000, '2026-03-17 11:30', N'Cash'),
+    (2, 2, 1700000, 350000, 205000, 0, 2255000, '2026-03-20 12:00', N'Card'),
+    (3, 5, 3600000, 0, 360000, 100000, 3860000, '2026-03-18 11:50', N'Transfer'),
+    (4, 7, 1700000, 180000, 188000, 0, 2068000, '2026-03-21 11:45', N'E-Wallet');
 SET IDENTITY_INSERT INVOICE OFF;

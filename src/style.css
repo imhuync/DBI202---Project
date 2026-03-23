@@ -79,6 +79,9 @@
     --transition-fast: 0.15s ease;
     --transition-base: 0.25s ease;
     --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Logo Color - White in Dark Mode */
+    --logo-color: #ffffff;
 }
 
 :root.light-theme {
@@ -109,6 +112,9 @@
     /* Toast overrides */
     --toast-bg: rgba(255, 255, 255, 0.9);
     --toast-color: #000000;
+
+    /* Logo Color - Black in Light Mode */
+    --logo-color: #000000;
 }
 
 /* ── Reset & Base ── */
@@ -215,7 +221,7 @@ body::before {
     padding: var(--space-lg);
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
 }
 
 .logo {
@@ -225,22 +231,17 @@ body::before {
 }
 
 .logo-icon {
+    display: none;
     font-size: var(--font-xl);
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    filter: drop-shadow(0 0 8px rgba(108, 99, 255, 0.5));
+    color: var(--logo-color);
+    filter: none;
 }
 
 .logo-text {
-    font-size: var(--font-lg);
+    font-size: var(--font-2xl);
     font-weight: 800;
     letter-spacing: -0.5px;
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--logo-color);
 }
 
 .sidebar-toggle {
@@ -2049,4 +2050,152 @@ body::before {
     text-align: center;
     color: var(--text-muted);
     font-size: var(--font-sm);
+}
+
+/* ── PRINT STYLES ── */
+@media print {
+    body {
+        background: white !important;
+        color: black !important;
+    }
+
+    .sidebar,
+    .top-bar,
+    .mobile-menu-btn,
+    .top-bar-actions,
+    .page-header,
+    .sidebar-backdrop,
+    .modal-overlay,
+    .toast-container,
+    .btn,
+    .nav-item,
+    .user-card,
+    .sidebar-footer,
+    .sidebar-header,
+    .stats-grid,
+    .section-panel {
+        display: none !important;
+    }
+
+    .main-content {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .page-container {
+        padding: 0 !important;
+    }
+
+    .glass-panel,
+    .glass-panel-sm {
+        background: transparent !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .printable-invoice {
+        display: block !important;
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px;
+        font-family: 'Inter', sans-serif;
+        color: black;
+    }
+
+    .invoice-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #333;
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+
+    .invoice-logo {
+        font-size: 32px;
+        font-weight: 800;
+        color: #000;
+    }
+
+    .invoice-meta {
+        text-align: right;
+    }
+
+    .invoice-meta h2 {
+        margin: 0;
+        font-size: 24px;
+        color: #333;
+    }
+
+    .invoice-info {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        margin-bottom: 40px;
+    }
+
+    .info-block h4 {
+        margin: 0 0 10px 0;
+        text-transform: uppercase;
+        font-size: 12px;
+        color: #666;
+    }
+
+    .info-block p {
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .invoice-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 40px;
+    }
+
+    .invoice-table th {
+        text-align: left;
+        background: #f5f5f5;
+        padding: 12px;
+        border-bottom: 2px solid #ddd;
+    }
+
+    .invoice-table td {
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .invoice-summary {
+        margin-left: auto;
+        width: 300px;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+    }
+
+    .summary-row.total {
+        border-top: 2px solid #333;
+        margin-top: 10px;
+        padding-top: 15px;
+        font-weight: 800;
+        font-size: 18px;
+    }
+
+    .invoice-footer {
+        margin-top: 60px;
+        text-align: center;
+        font-size: 12px;
+        color: #888;
+        border-top: 1px solid #eee;
+        padding-top: 20px;
+    }
+}
+
+.printable-invoice {
+    display: none;
 }

@@ -11,101 +11,261 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Helper to execute query
-const executeQuery = async (query: string, params: { name: string, type: any, value: any }[] = []) => {
-    const pool = await poolPromise;
-    const request = pool.request();
-    params.forEach(param => {
-        request.input(param.name, param.type, param.value);
-    });
+type SqlParam = { name: string; type: any; value: any };
+
+const isMissingStoredProcedureError = (err: unknown): boolean =>
+    (err as any)?.number === 2812;
+
+const executeQuery = async (
+    query: string,
+    params: SqlParam[] = []
+) => {
+    const request = (await poolPromise).request();
+    params.forEach(param => request.input(param.name, param.type, param.value));
     const result = await request.query(query);
     return result.recordset;
 };
 
-/* ── Basic CRUD Endpoints ── */
+const executeQueryResult = async (
+    query: string,
+    params: SqlParam[] = []
+) => {
+    const request = (await poolPromise).request();
+    params.forEach(param => request.input(param.name, param.type, param.value));
+    return request.query(query);
+};
+
+const executeProcedure = async (
+    procedure: string,
+    params: SqlParam[] = []
+) => {
+    const request = (await poolPromise).request();
+    params.forEach(param => request.input(param.name, param.type, param.value));
+    return request.execute(procedure);
+};
+
+const createTransactionRequest = (
+    transaction: any,
+    params: SqlParam[] = []
+) => {
+    const request = new mssql.Request(transaction);
+    params.forEach(param => request.input(param.name, param.type, param.value));
+    return request;
+};
+
+const executeProcedureOrQuery = async (
+    procedure: string,
+    fallbackQuery: string,
+    params: { name: string; type: any; value: any }[] = []
+) => {
+    try {
+        const request = (await poolPromise).request();
+        params.forEach(param => request.input(param.name, param.type, param.value));
+        const result = await request.execute(procedure);
+        return result.recordset;
+    } catch (err) {
+        if ((err as any).number === 2812) {
+            return executeQuery(fallbackQuery, params);
+        }
+        throw err;
+    }
+};
+
+/* ── Basic CRUD Endpoints (Using Stored Procedures) ── */
 
 app.get('/api/rooms', async (req, res) => {
     try {
-        const rooms = await executeQuery('SELECT * FROM ROOM');
+        const rooms = await executeProcedureOrQuery(
+            'sp_GetAllRooms',
+            `SELECT r.*, rt.type_name, rt.base_price
+             FROM ROOM r
+             JOIN ROOM_TYPE rt ON r.type_id = rt.type_id`
+        );
         res.json(rooms);
     } catch (err) { res.status(500).send(err); }
 });
 
 app.get('/api/room-types', async (req, res) => {
     try {
-        const types = await executeQuery('SELECT * FROM ROOM_TYPE');
-        res.json(types);
+        const roomTypes = await executeProcedureOrQuery(
+            'sp_GetAllRoomTypes',
+            'SELECT * FROM ROOM_TYPE'
+        );
+        res.json(roomTypes);
+    } catch (err) { res.status(500).send(err); }
+});
+
+app.post('/api/room-types', async (req, res) => {
+    const { type_name, base_price, max_capacity, description } = req.body;
+    const params: SqlParam[] = [
+        { name: 'type_name', type: mssql.NVarChar(50), value: type_name },
+        { name: 'base_price', type: mssql.Decimal(12, 2), value: base_price },
+        { name: 'max_capacity', type: mssql.Int, value: max_capacity },
+        { name: 'description', type: mssql.NVarChar(500), value: description }
+    ];
+    try {
+        try {
+            await executeProcedure('sp_CreateRoomType', params);
+        } catch (err) {
+            if (!isMissingStoredProcedureError(err)) throw err;
+            await executeQueryResult(
+                `INSERT INTO ROOM_TYPE (type_name, base_price, max_capacity, description)
+                 VALUES (@type_name, @base_price, @max_capacity, @description)`,
+                params
+            );
+        }
+        res.status(201).json({ success: true });
     } catch (err) { res.status(500).send(err); }
 });
 
 app.get('/api/guests', async (req, res) => {
     try {
-        const guests = await executeQuery('SELECT * FROM GUEST');
+        const guests = await executeProcedureOrQuery(
+            'sp_GetAllGuests',
+            'SELECT * FROM GUEST'
+        );
         res.json(guests);
     } catch (err) { res.status(500).send(err); }
 });
 
 app.get('/api/employees', async (req, res) => {
     try {
-        const employees = await executeQuery('SELECT * FROM EMPLOYEE');
+        const employees = await executeProcedureOrQuery(
+            'sp_GetAllEmployees',
+            'SELECT emp_id, full_name, role, username FROM EMPLOYEE'
+        );
         res.json(employees);
     } catch (err) { res.status(500).send(err); }
 });
 
 app.get('/api/bookings', async (req, res) => {
     try {
-        const bookings = await executeQuery('SELECT * FROM BOOKING');
+        const bookings = await executeProcedureOrQuery(
+            'sp_GetAllBookings',
+            'SELECT * FROM BOOKING'
+        );
         res.json(bookings);
     } catch (err) { res.status(500).send(err); }
 });
 
 app.get('/api/booking-details', async (req, res) => {
     try {
-        const details = await executeQuery('SELECT * FROM BOOKING_DETAIL');
+        const details = await executeProcedureOrQuery(
+            'sp_GetAllBookingDetails',
+            'SELECT * FROM BOOKING_DETAIL'
+        );
         res.json(details);
     } catch (err) { res.status(500).send(err); }
 });
 
 app.get('/api/services', async (req, res) => {
     try {
-        const services = await executeQuery('SELECT * FROM SERVICE');
+        const services = await executeProcedureOrQuery(
+            'sp_GetAllServices',
+            'SELECT * FROM SERVICE'
+        );
         res.json(services);
     } catch (err) { res.status(500).send(err); }
 });
 
 app.get('/api/service-usages', async (req, res) => {
     try {
-        const usages = await executeQuery('SELECT * FROM SERVICE_USAGE');
+        const usages = await executeProcedureOrQuery(
+            'sp_GetAllServiceUsages',
+            'SELECT * FROM SERVICE_USAGE'
+        );
         res.json(usages);
     } catch (err) { res.status(500).send(err); }
 });
 
 app.get('/api/invoices', async (req, res) => {
     try {
-        const invoices = await executeQuery('SELECT * FROM INVOICE');
+        const invoices = await executeProcedureOrQuery(
+            'sp_GetAllInvoices',
+            'SELECT * FROM INVOICE'
+        );
         res.json(invoices);
     } catch (err) { res.status(500).send(err); }
 });
 
-/* ── Business Logic (Formerly Stored Procedures) ── */
+/* ── Business Logic (Calling Stored Procedures) ── */
 
 // Create Booking
 app.post('/api/bookings', async (req, res) => {
-    const { guest_id, emp_id, expected_checkin, expected_checkout, total_deposit } = req.body;
+    const { guest_id, emp_id, expected_checkin, expected_checkout, total_deposit, rooms } = req.body;
+    const roomIds = Array.isArray(rooms)
+        ? [...new Set(rooms.map((roomId: unknown) => Number(roomId)).filter(roomId => Number.isInteger(roomId) && roomId > 0))]
+        : [];
+
+    if (roomIds.length === 0) {
+        return res.status(400).json({ error: 'Vui lòng chọn ít nhất 1 phòng.' });
+    }
+
     try {
-        const query = `
-            INSERT INTO BOOKING (guest_id, emp_id, booking_date, expected_checkin, expected_checkout, status, total_deposit)
-            OUTPUT INSERTED.booking_id
-            VALUES (@guest_id, @emp_id, GETDATE(), @expected_checkin, @expected_checkout, N'Pending', @total_deposit)
-        `;
-        const result = await executeQuery(query, [
-            { name: 'guest_id', type: mssql.Int, value: guest_id },
-            { name: 'emp_id', type: mssql.Int, value: emp_id },
-            { name: 'expected_checkin', type: mssql.DateTime, value: expected_checkin },
-            { name: 'expected_checkout', type: mssql.DateTime, value: expected_checkout },
-            { name: 'total_deposit', type: mssql.Decimal(12, 2), value: total_deposit }
-        ]);
-        res.status(201).json(result[0]);
+        const pool = await poolPromise;
+        const transaction = new mssql.Transaction(pool);
+        await transaction.begin();
+
+        try {
+            const bookingParams: SqlParam[] = [
+                { name: 'guest_id', type: mssql.Int, value: guest_id },
+                { name: 'emp_id', type: mssql.Int, value: emp_id },
+                { name: 'checkin', type: mssql.DateTime, value: expected_checkin },
+                { name: 'checkout', type: mssql.DateTime, value: expected_checkout },
+                { name: 'deposit', type: mssql.Decimal(12, 2), value: total_deposit }
+            ];
+
+            let bookingResult;
+            try {
+                bookingResult = await createTransactionRequest(transaction, bookingParams)
+                    .execute('sp_CreateBooking');
+            } catch (err) {
+                if (!isMissingStoredProcedureError(err)) throw err;
+                bookingResult = await createTransactionRequest(transaction, bookingParams)
+                    .query(`
+                        INSERT INTO BOOKING (guest_id, emp_id, booking_date, expected_checkin, expected_checkout, status, total_deposit)
+                        OUTPUT INSERTED.booking_id
+                        VALUES (@guest_id, @emp_id, GETDATE(), @checkin, @checkout, N'Pending', @deposit)
+                    `);
+            }
+
+            const bookingId = bookingResult.recordset[0]?.booking_id;
+            if (!bookingId) {
+                throw new Error('Không thể tạo booking mới.');
+            }
+
+            for (const roomId of roomIds) {
+                const detailResult = await new mssql.Request(transaction)
+                    .input('booking_id', mssql.Int, bookingId)
+                    .input('room_id', mssql.Int, roomId)
+                    .query(`
+                        INSERT INTO BOOKING_DETAIL (booking_id, room_id, price_at_booking)
+                        SELECT @booking_id, r.room_id, rt.base_price
+                        FROM ROOM r
+                        JOIN ROOM_TYPE rt ON r.type_id = rt.type_id
+                        WHERE r.room_id = @room_id
+                          AND r.status = N'Clean'
+                    `);
+
+                if ((detailResult.rowsAffected[0] ?? 0) === 0) {
+                    throw Object.assign(
+                        new Error('Phòng không tồn tại hoặc hiện không sẵn sàng để đặt.'),
+                        { statusCode: 409 }
+                    );
+                }
+            }
+
+            await transaction.commit();
+            res.status(201).json({ booking_id: bookingId });
+        } catch (err) {
+            await transaction.rollback();
+
+            if ((err as any).statusCode === 409) {
+                return res.status(409).json({ error: (err as any).message });
+            }
+
+            throw err;
+        }
     } catch (err) { res.status(500).send(err); }
 });
 
@@ -113,35 +273,42 @@ app.post('/api/bookings', async (req, res) => {
 app.post('/api/check-in', async (req, res) => {
     const { detail_id } = req.body;
     try {
-        const pool = await poolPromise;
-        const transaction = new mssql.Transaction(pool);
-        await transaction.begin();
-
         try {
-            const request = new mssql.Request(transaction);
-            request.input('detail_id', mssql.Int, detail_id);
-
-            // 1. Update actual_checkin
-            await request.query('UPDATE BOOKING_DETAIL SET actual_checkin = GETDATE() WHERE detail_id = @detail_id');
-
-            // 2. Clear room_id to update room status
-            const roomResult = await request.query('SELECT room_id, booking_id FROM BOOKING_DETAIL WHERE detail_id = @detail_id');
-            const { room_id, booking_id } = roomResult.recordset[0];
-
-            // 3. Update Room status
-            request.input('room_id', mssql.Int, room_id);
-            await request.query("UPDATE ROOM SET status = N'Occupied' WHERE room_id = @room_id");
-
-            // 4. Update Booking status if Pending
-            request.input('booking_id', mssql.Int, booking_id);
-            await request.query("UPDATE BOOKING SET status = N'Confirmed' WHERE booking_id = @booking_id AND status = N'Pending'");
-
-            await transaction.commit();
-            res.json({ success: true });
+            await executeProcedure('sp_CheckIn', [
+                { name: 'detail_id', type: mssql.Int, value: detail_id }
+            ]);
         } catch (err) {
-            await transaction.rollback();
-            throw err;
+            if (!isMissingStoredProcedureError(err)) throw err;
+
+            const pool = await poolPromise;
+            const transaction = new mssql.Transaction(pool);
+            await transaction.begin();
+
+            try {
+                await createTransactionRequest(transaction, [
+                    { name: 'detail_id', type: mssql.Int, value: detail_id }
+                ]).query('UPDATE BOOKING_DETAIL SET actual_checkin = GETDATE() WHERE detail_id = @detail_id');
+
+                const roomResult = await createTransactionRequest(transaction, [
+                    { name: 'detail_id', type: mssql.Int, value: detail_id }
+                ]).query('SELECT room_id, booking_id FROM BOOKING_DETAIL WHERE detail_id = @detail_id');
+
+                const { room_id, booking_id } = roomResult.recordset[0] || {};
+                await createTransactionRequest(transaction, [
+                    { name: 'room_id', type: mssql.Int, value: room_id }
+                ]).query("UPDATE ROOM SET status = N'Occupied' WHERE room_id = @room_id");
+
+                await createTransactionRequest(transaction, [
+                    { name: 'booking_id', type: mssql.Int, value: booking_id }
+                ]).query("UPDATE BOOKING SET status = N'Confirmed' WHERE booking_id = @booking_id AND status = N'Pending'");
+
+                await transaction.commit();
+            } catch (fallbackErr) {
+                await transaction.rollback();
+                throw fallbackErr;
+            }
         }
+        res.json({ success: true });
     } catch (err) { res.status(500).send(err); }
 });
 
@@ -149,48 +316,61 @@ app.post('/api/check-in', async (req, res) => {
 app.post('/api/check-out', async (req, res) => {
     const { detail_id } = req.body;
     try {
-        const pool = await poolPromise;
-        const transaction = new mssql.Transaction(pool);
-        await transaction.begin();
-
         try {
-            const request = new mssql.Request(transaction);
-            request.input('detail_id', mssql.Int, detail_id);
-
-            // 1. Update actual_checkout
-            await request.query('UPDATE BOOKING_DETAIL SET actual_checkout = GETDATE() WHERE detail_id = @detail_id');
-
-            // 2. Get room_id
-            const roomResult = await request.query('SELECT room_id FROM BOOKING_DETAIL WHERE detail_id = @detail_id');
-            const room_id = roomResult.recordset[0].room_id;
-
-            // 3. Update Room status to Dirty
-            request.input('room_id', mssql.Int, room_id);
-            await request.query("UPDATE ROOM SET status = N'Dirty' WHERE room_id = @room_id");
-
-            await transaction.commit();
-            res.json({ success: true });
+            await executeProcedure('sp_CheckOut', [
+                { name: 'detail_id', type: mssql.Int, value: detail_id }
+            ]);
         } catch (err) {
-            await transaction.rollback();
-            throw err;
+            if (!isMissingStoredProcedureError(err)) throw err;
+
+            const pool = await poolPromise;
+            const transaction = new mssql.Transaction(pool);
+            await transaction.begin();
+
+            try {
+                await createTransactionRequest(transaction, [
+                    { name: 'detail_id', type: mssql.Int, value: detail_id }
+                ]).query('UPDATE BOOKING_DETAIL SET actual_checkout = GETDATE() WHERE detail_id = @detail_id');
+
+                const roomResult = await createTransactionRequest(transaction, [
+                    { name: 'detail_id', type: mssql.Int, value: detail_id }
+                ]).query('SELECT room_id FROM BOOKING_DETAIL WHERE detail_id = @detail_id');
+
+                const room_id = roomResult.recordset[0]?.room_id;
+                await createTransactionRequest(transaction, [
+                    { name: 'room_id', type: mssql.Int, value: room_id }
+                ]).query("UPDATE ROOM SET status = N'Dirty' WHERE room_id = @room_id");
+
+                await transaction.commit();
+            } catch (fallbackErr) {
+                await transaction.rollback();
+                throw fallbackErr;
+            }
         }
+        res.json({ success: true });
     } catch (err) { res.status(500).send(err); }
 });
 
 // Add Service Usage
 app.post('/api/service-usages', async (req, res) => {
     const { booking_detail_id, service_id, quantity } = req.body;
+    const params: SqlParam[] = [
+        { name: 'detail_id', type: mssql.Int, value: booking_detail_id },
+        { name: 'service_id', type: mssql.Int, value: service_id },
+        { name: 'quantity', type: mssql.Int, value: quantity }
+    ];
     try {
-        const query = `
-            INSERT INTO SERVICE_USAGE (booking_detail_id, service_id, quantity, used_at, total_price)
-            SELECT @booking_detail_id, @service_id, @quantity, GETDATE(), @quantity * unit_price
-            FROM SERVICE WHERE service_id = @service_id
-        `;
-        await executeQuery(query, [
-            { name: 'booking_detail_id', type: mssql.Int, value: booking_detail_id },
-            { name: 'service_id', type: mssql.Int, value: service_id },
-            { name: 'quantity', type: mssql.Int, value: quantity }
-        ]);
+        try {
+            await executeProcedure('sp_AddServiceUsage', params);
+        } catch (err) {
+            if (!isMissingStoredProcedureError(err)) throw err;
+            await executeQueryResult(
+                `INSERT INTO SERVICE_USAGE (booking_detail_id, service_id, quantity, used_at, total_price)
+                 SELECT @detail_id, @service_id, @quantity, GETDATE(), @quantity * unit_price
+                 FROM SERVICE WHERE service_id = @service_id`,
+                params
+            );
+        }
         res.status(201).json({ success: true });
     } catch (err) { res.status(500).send(err); }
 });
@@ -199,65 +379,82 @@ app.post('/api/service-usages', async (req, res) => {
 app.post('/api/generate-invoice', async (req, res) => {
     const { booking_id, discount, payment_method } = req.body;
     try {
-        const pool = await poolPromise;
-        const transaction = new mssql.Transaction(pool);
-        await transaction.begin();
+        let finalAmount = 0;
 
         try {
-            const request = new mssql.Request(transaction);
-            request.input('booking_id', mssql.Int, booking_id);
-
-            // 1. Remove old invoice if exists
-            await request.query('DELETE FROM INVOICE WHERE booking_id = @booking_id');
-
-            // 2. Calculate charges
-            const roomChargeResult = await request.query('SELECT COALESCE(SUM(price_at_booking), 0) as total FROM BOOKING_DETAIL WHERE booking_id = @booking_id');
-            const roomCharge = roomChargeResult.recordset[0].total;
-
-            const svcChargeResult = await request.query(`
-                SELECT COALESCE(SUM(total_price), 0) as total 
-                FROM SERVICE_USAGE su
-                JOIN BOOKING_DETAIL bd ON su.booking_detail_id = bd.detail_id
-                WHERE bd.booking_id = @booking_id
-            `);
-            const serviceCharge = svcChargeResult.recordset[0].total;
-
-            const tax = (roomCharge + serviceCharge) * 0.1;
-            const finalAmount = (roomCharge + serviceCharge) + tax - (discount || 0);
-
-            // 3. Insert Invoice
-            request.input('room_charge', mssql.Decimal(12, 2), roomCharge);
-            request.input('service_charge', mssql.Decimal(12, 2), serviceCharge);
-            request.input('tax_amount', mssql.Decimal(12, 2), tax);
-            request.input('discount_amount', mssql.Decimal(12, 2), discount || 0);
-            request.input('final_amount', mssql.Decimal(12, 2), finalAmount);
-            request.input('payment_method', mssql.NVarChar(30), payment_method);
-
-            await request.query(`
-                INSERT INTO INVOICE (booking_id, room_charge, service_charge, tax_amount, discount_amount, final_amount, payment_date, payment_method)
-                VALUES (@booking_id, @room_charge, @service_charge, @tax_amount, @discount_amount, @final_amount, GETDATE(), @payment_method)
-            `);
-
-            // 4. Complete Booking
-            await request.query("UPDATE BOOKING SET status = N'Completed' WHERE booking_id = @booking_id");
-
-            await transaction.commit();
-            res.json({ success: true, finalAmount });
+            const result = await executeProcedure('sp_GenerateInvoice', [
+                { name: 'booking_id', type: mssql.Int, value: booking_id },
+                { name: 'discount', type: mssql.Decimal(12, 2), value: discount },
+                { name: 'method', type: mssql.NVarChar(30), value: payment_method }
+            ]);
+            finalAmount = result.recordset[0]?.finalAmount ?? 0;
         } catch (err) {
-            await transaction.rollback();
-            throw err;
+            if (!isMissingStoredProcedureError(err)) throw err;
+
+            const pool = await poolPromise;
+            const transaction = new mssql.Transaction(pool);
+            await transaction.begin();
+
+            try {
+                const bookingParam: SqlParam = { name: 'booking_id', type: mssql.Int, value: booking_id };
+                await createTransactionRequest(transaction, [bookingParam]).query('DELETE FROM INVOICE WHERE booking_id = @booking_id');
+
+                const roomChargeResult = await createTransactionRequest(transaction, [bookingParam])
+                    .query('SELECT COALESCE(SUM(price_at_booking), 0) as total FROM BOOKING_DETAIL WHERE booking_id = @booking_id');
+                const roomCharge = roomChargeResult.recordset[0]?.total ?? 0;
+
+                const serviceChargeResult = await createTransactionRequest(transaction, [bookingParam]).query(`
+                    SELECT COALESCE(SUM(total_price), 0) as total
+                    FROM SERVICE_USAGE su
+                    JOIN BOOKING_DETAIL bd ON su.booking_detail_id = bd.detail_id
+                    WHERE bd.booking_id = @booking_id
+                `);
+                const serviceCharge = serviceChargeResult.recordset[0]?.total ?? 0;
+
+                const tax = (roomCharge + serviceCharge) * 0.1;
+                finalAmount = (roomCharge + serviceCharge) + tax - (discount || 0);
+
+                await createTransactionRequest(transaction, [
+                    bookingParam,
+                    { name: 'room_charge', type: mssql.Decimal(12, 2), value: roomCharge },
+                    { name: 'service_charge', type: mssql.Decimal(12, 2), value: serviceCharge },
+                    { name: 'tax_amount', type: mssql.Decimal(12, 2), value: tax },
+                    { name: 'discount_amount', type: mssql.Decimal(12, 2), value: discount || 0 },
+                    { name: 'final_amount', type: mssql.Decimal(12, 2), value: finalAmount },
+                    { name: 'payment_method', type: mssql.NVarChar(30), value: payment_method }
+                ]).query(`
+                    INSERT INTO INVOICE (booking_id, room_charge, service_charge, tax_amount, discount_amount, final_amount, payment_date, payment_method)
+                    VALUES (@booking_id, @room_charge, @service_charge, @tax_amount, @discount_amount, @final_amount, GETDATE(), @payment_method)
+                `);
+
+                await createTransactionRequest(transaction, [bookingParam])
+                    .query("UPDATE BOOKING SET status = N'Completed' WHERE booking_id = @booking_id");
+
+                await transaction.commit();
+            } catch (fallbackErr) {
+                await transaction.rollback();
+                throw fallbackErr;
+            }
         }
+
+        res.json({ success: true, finalAmount });
     } catch (err) { res.status(500).send(err); }
 });
 
 // Update Room Status
 app.post('/api/rooms/update-status', async (req, res) => {
     const { room_id, status } = req.body;
+    const params: SqlParam[] = [
+        { name: 'room_id', type: mssql.Int, value: room_id },
+        { name: 'status', type: mssql.NVarChar(20), value: status }
+    ];
     try {
-        await executeQuery('UPDATE ROOM SET status = @status WHERE room_id = @room_id', [
-            { name: 'status', type: mssql.NVarChar(20), value: status },
-            { name: 'room_id', type: mssql.Int, value: room_id }
-        ]);
+        try {
+            await executeProcedure('sp_UpdateRoomStatus', params);
+        } catch (err) {
+            if (!isMissingStoredProcedureError(err)) throw err;
+            await executeQueryResult('UPDATE ROOM SET status = @status WHERE room_id = @room_id', params);
+        }
         res.json({ success: true });
     } catch (err) { res.status(500).send(err); }
 });
@@ -265,16 +462,23 @@ app.post('/api/rooms/update-status', async (req, res) => {
 // Create Room
 app.post('/api/rooms', async (req, res) => {
     const { room_number, floor, type_id, status } = req.body;
+    const params: SqlParam[] = [
+        { name: 'room_number', type: mssql.NVarChar(10), value: room_number },
+        { name: 'floor', type: mssql.Int, value: floor },
+        { name: 'type_id', type: mssql.Int, value: type_id },
+        { name: 'status', type: mssql.NVarChar(20), value: status || 'Clean' }
+    ];
     try {
-        await executeQuery(`
-            INSERT INTO ROOM (room_number, floor, type_id, status)
-            VALUES (@room_number, @floor, @type_id, @status)
-        `, [
-            { name: 'room_number', type: mssql.NVarChar(10), value: room_number },
-            { name: 'floor', type: mssql.Int, value: floor },
-            { name: 'type_id', type: mssql.Int, value: type_id },
-            { name: 'status', type: mssql.NVarChar(20), value: status || 'Clean' }
-        ]);
+        try {
+            await executeProcedure('sp_CreateRoom', params);
+        } catch (err) {
+            if (!isMissingStoredProcedureError(err)) throw err;
+            await executeQueryResult(
+                `INSERT INTO ROOM (room_number, floor, type_id, status)
+                 VALUES (@room_number, @floor, @type_id, @status)`,
+                params
+            );
+        }
         res.status(201).json({ success: true });
     } catch (err) { res.status(500).send(err); }
 });
@@ -282,17 +486,24 @@ app.post('/api/rooms', async (req, res) => {
 // Update Room
 app.post('/api/rooms/update', async (req, res) => {
     const { room_id, room_number, floor, type_id } = req.body;
+    const params: SqlParam[] = [
+        { name: 'room_id', type: mssql.Int, value: room_id },
+        { name: 'room_number', type: mssql.NVarChar(10), value: room_number },
+        { name: 'floor', type: mssql.Int, value: floor },
+        { name: 'type_id', type: mssql.Int, value: type_id }
+    ];
     try {
-        await executeQuery(`
-            UPDATE ROOM 
-            SET room_number = @room_number, floor = @floor, type_id = @type_id
-            WHERE room_id = @room_id
-        `, [
-            { name: 'room_id', type: mssql.Int, value: room_id },
-            { name: 'room_number', type: mssql.NVarChar(10), value: room_number },
-            { name: 'floor', type: mssql.Int, value: floor },
-            { name: 'type_id', type: mssql.Int, value: type_id }
-        ]);
+        try {
+            await executeProcedure('sp_UpdateRoom', params);
+        } catch (err) {
+            if (!isMissingStoredProcedureError(err)) throw err;
+            await executeQueryResult(
+                `UPDATE ROOM
+                 SET room_number = @room_number, floor = @floor, type_id = @type_id
+                 WHERE room_id = @room_id`,
+                params
+            );
+        }
         res.json({ success: true });
     } catch (err) { res.status(500).send(err); }
 });
@@ -300,39 +511,59 @@ app.post('/api/rooms/update', async (req, res) => {
 // Delete Room
 app.delete('/api/rooms/:id', async (req, res) => {
     const { id } = req.params;
+    const roomId = parseInt(id!);
     try {
-        // Check if room has any booking details
-        const details = await executeQuery(
-            'SELECT COUNT(*) as count FROM BOOKING_DETAIL WHERE room_id = @id',
-            [{ name: 'id', type: mssql.Int, value: parseInt(id!) }]
-        );
-        if (details[0].count > 0) {
-            return res.status(409).json({ error: 'Phòng này đã từng có khách đặt hoặc đang ở, không thể xóa để đảm bảo toàn vẹn dữ liệu.' });
-        }
+        try {
+            await executeProcedure('sp_DeleteRoom', [
+                { name: 'room_id', type: mssql.Int, value: roomId }
+            ]);
+        } catch (err) {
+            if ((err as any).number === 50001) {
+                return res.status(409).json({ error: (err as any).message });
+            }
+            if (!isMissingStoredProcedureError(err)) throw err;
 
-        await executeQuery('DELETE FROM ROOM WHERE room_id = @id', [
-            { name: 'id', type: mssql.Int, value: parseInt(id!) }
-        ]);
+            const details = await executeQuery(
+                'SELECT COUNT(*) as count FROM BOOKING_DETAIL WHERE room_id = @id',
+                [{ name: 'id', type: mssql.Int, value: roomId }]
+            );
+            if (details[0]?.count > 0) {
+                return res.status(409).json({ error: 'Phòng này đã từng có khách đặt hoặc đang ở, không thể xóa để đảm bảo toàn vẹn dữ liệu.' });
+            }
+
+            await executeQueryResult('DELETE FROM ROOM WHERE room_id = @id', [
+                { name: 'id', type: mssql.Int, value: roomId }
+            ]);
+        }
         res.json({ success: true });
-    } catch (err) { res.status(500).send(err); }
+    } catch (err) { 
+        res.status(500).send(err); 
+    }
 });
 
 // Update Guest
 app.post('/api/guests/update', async (req, res) => {
     const { guest_id, full_name, email, phone, id_card, nationality } = req.body;
+    const params: SqlParam[] = [
+        { name: 'guest_id', type: mssql.Int, value: guest_id },
+        { name: 'full_name', type: mssql.NVarChar(100), value: full_name },
+        { name: 'email', type: mssql.NVarChar(100), value: email },
+        { name: 'phone', type: mssql.NVarChar(20), value: phone },
+        { name: 'id_card', type: mssql.NVarChar(20), value: id_card },
+        { name: 'nationality', type: mssql.NVarChar(50), value: nationality }
+    ];
     try {
-        await executeQuery(`
-            UPDATE GUEST 
-            SET full_name = @full_name, email = @email, phone = @phone, id_card = @id_card, nationality = @nationality
-            WHERE guest_id = @guest_id
-        `, [
-            { name: 'guest_id', type: mssql.Int, value: guest_id },
-            { name: 'full_name', type: mssql.NVarChar(100), value: full_name },
-            { name: 'email', type: mssql.NVarChar(100), value: email },
-            { name: 'phone', type: mssql.NVarChar(20), value: phone },
-            { name: 'id_card', type: mssql.NVarChar(20), value: id_card },
-            { name: 'nationality', type: mssql.NVarChar(50), value: nationality }
-        ]);
+        try {
+            await executeProcedure('sp_UpdateGuest', params);
+        } catch (err) {
+            if (!isMissingStoredProcedureError(err)) throw err;
+            await executeQueryResult(
+                `UPDATE GUEST
+                 SET full_name = @full_name, email = @email, phone = @phone, id_card = @id_card, nationality = @nationality
+                 WHERE guest_id = @guest_id`,
+                params
+            );
+        }
         res.json({ success: true });
     } catch (err) { res.status(500).send(err); }
 });
@@ -340,17 +571,24 @@ app.post('/api/guests/update', async (req, res) => {
 // Create Guest
 app.post('/api/guests', async (req, res) => {
     const { full_name, email, phone, id_card, nationality } = req.body;
+    const params: SqlParam[] = [
+        { name: 'full_name', type: mssql.NVarChar(100), value: full_name },
+        { name: 'email', type: mssql.NVarChar(100), value: email },
+        { name: 'phone', type: mssql.NVarChar(20), value: phone },
+        { name: 'id_card', type: mssql.NVarChar(20), value: id_card },
+        { name: 'nationality', type: mssql.NVarChar(50), value: nationality || 'Vietnam' }
+    ];
     try {
-        await executeQuery(`
-            INSERT INTO GUEST (full_name, email, phone, id_card, nationality)
-            VALUES (@full_name, @email, @phone, @id_card, @nationality)
-        `, [
-            { name: 'full_name', type: mssql.NVarChar(100), value: full_name },
-            { name: 'email', type: mssql.NVarChar(100), value: email },
-            { name: 'phone', type: mssql.NVarChar(20), value: phone },
-            { name: 'id_card', type: mssql.NVarChar(20), value: id_card },
-            { name: 'nationality', type: mssql.NVarChar(50), value: nationality || 'Vietnam' }
-        ]);
+        try {
+            await executeProcedure('sp_CreateGuest', params);
+        } catch (err) {
+            if (!isMissingStoredProcedureError(err)) throw err;
+            await executeQueryResult(
+                `INSERT INTO GUEST (full_name, email, phone, id_card, nationality)
+                 VALUES (@full_name, @email, @phone, @id_card, @nationality)`,
+                params
+            );
+        }
         res.status(201).json({ success: true });
     } catch (err) { res.status(500).send(err); }
 });
@@ -358,17 +596,24 @@ app.post('/api/guests', async (req, res) => {
 // Update Employee
 app.post('/api/employees/update', async (req, res) => {
     const { emp_id, full_name, role, username } = req.body;
+    const params: SqlParam[] = [
+        { name: 'emp_id', type: mssql.Int, value: emp_id },
+        { name: 'full_name', type: mssql.NVarChar(100), value: full_name },
+        { name: 'role', type: mssql.NVarChar(50), value: role },
+        { name: 'username', type: mssql.NVarChar(50), value: username }
+    ];
     try {
-        await executeQuery(`
-            UPDATE EMPLOYEE 
-            SET full_name = @full_name, role = @role, username = @username
-            WHERE emp_id = @emp_id
-        `, [
-            { name: 'emp_id', type: mssql.Int, value: emp_id },
-            { name: 'full_name', type: mssql.NVarChar(100), value: full_name },
-            { name: 'role', type: mssql.NVarChar(50), value: role },
-            { name: 'username', type: mssql.NVarChar(50), value: username }
-        ]);
+        try {
+            await executeProcedure('sp_UpdateEmployee', params);
+        } catch (err) {
+            if (!isMissingStoredProcedureError(err)) throw err;
+            await executeQueryResult(
+                `UPDATE EMPLOYEE
+                 SET full_name = @full_name, role = @role, username = @username
+                 WHERE emp_id = @emp_id`,
+                params
+            );
+        }
         res.json({ success: true });
     } catch (err) { res.status(500).send(err); }
 });
@@ -376,16 +621,23 @@ app.post('/api/employees/update', async (req, res) => {
 // Create Employee
 app.post('/api/employees', async (req, res) => {
     const { full_name, role, username, password_hash } = req.body;
+    const params: SqlParam[] = [
+        { name: 'full_name', type: mssql.NVarChar(100), value: full_name },
+        { name: 'role', type: mssql.NVarChar(30), value: role },
+        { name: 'username', type: mssql.NVarChar(50), value: username },
+        { name: 'password_hash', type: mssql.NVarChar(256), value: password_hash || '***' }
+    ];
     try {
-        await executeQuery(`
-            INSERT INTO EMPLOYEE (full_name, role, username, password_hash)
-            VALUES (@full_name, @role, @username, @password_hash)
-        `, [
-            { name: 'full_name', type: mssql.NVarChar(100), value: full_name },
-            { name: 'role', type: mssql.NVarChar(50), value: role },
-            { name: 'username', type: mssql.NVarChar(50), value: username },
-            { name: 'password_hash', type: mssql.NVarChar(255), value: password_hash || '***' }
-        ]);
+        try {
+            await executeProcedure('sp_CreateEmployee', params);
+        } catch (err) {
+            if (!isMissingStoredProcedureError(err)) throw err;
+            await executeQueryResult(
+                `INSERT INTO EMPLOYEE (full_name, role, username, password_hash)
+                 VALUES (@full_name, @role, @username, @password_hash)`,
+                params
+            );
+        }
         res.status(201).json({ success: true });
     } catch (err) { res.status(500).send(err); }
 });
@@ -393,11 +645,20 @@ app.post('/api/employees', async (req, res) => {
 // Reset Employee Password
 app.post('/api/employees/reset-password', async (req, res) => {
     const { emp_id, password_hash } = req.body;
+    const params: SqlParam[] = [
+        { name: 'emp_id', type: mssql.Int, value: emp_id },
+        { name: 'password_hash', type: mssql.NVarChar(256), value: password_hash }
+    ];
     try {
-        await executeQuery('UPDATE EMPLOYEE SET password_hash = @password_hash WHERE emp_id = @emp_id', [
-            { name: 'emp_id', type: mssql.Int, value: emp_id },
-            { name: 'password_hash', type: mssql.NVarChar(255), value: password_hash }
-        ]);
+        try {
+            await executeProcedure('sp_ResetPassword', params);
+        } catch (err) {
+            if (!isMissingStoredProcedureError(err)) throw err;
+            await executeQueryResult(
+                'UPDATE EMPLOYEE SET password_hash = @password_hash WHERE emp_id = @emp_id',
+                params
+            );
+        }
         res.json({ success: true });
     } catch (err) { res.status(500).send(err); }
 });
@@ -405,10 +666,18 @@ app.post('/api/employees/reset-password', async (req, res) => {
 // Delete Employee
 app.delete('/api/employees/:id', async (req, res) => {
     const { id } = req.params;
+    const empId = parseInt(id!);
     try {
-        await executeQuery('DELETE FROM EMPLOYEE WHERE emp_id = @id', [
-            { name: 'id', type: mssql.Int, value: parseInt(id!) }
-        ]);
+        try {
+            await executeProcedure('sp_DeleteEmployee', [
+                { name: 'emp_id', type: mssql.Int, value: empId }
+            ]);
+        } catch (err) {
+            if (!isMissingStoredProcedureError(err)) throw err;
+            await executeQueryResult('DELETE FROM EMPLOYEE WHERE emp_id = @id', [
+                { name: 'id', type: mssql.Int, value: empId }
+            ]);
+        }
         res.json({ success: true });
     } catch (err) { res.status(500).send(err); }
 });
@@ -416,17 +685,24 @@ app.delete('/api/employees/:id', async (req, res) => {
 // Update Service
 app.post('/api/services/update', async (req, res) => {
     const { service_id, service_name, unit_price, unit } = req.body;
+    const params: SqlParam[] = [
+        { name: 'service_id', type: mssql.Int, value: service_id },
+        { name: 'service_name', type: mssql.NVarChar(100), value: service_name },
+        { name: 'unit_price', type: mssql.Decimal(12, 2), value: unit_price },
+        { name: 'unit', type: mssql.NVarChar(20), value: unit }
+    ];
     try {
-        await executeQuery(`
-            UPDATE SERVICE 
-            SET service_name = @service_name, unit_price = @unit_price, unit = @unit
-            WHERE service_id = @service_id
-        `, [
-            { name: 'service_id', type: mssql.Int, value: service_id },
-            { name: 'service_name', type: mssql.NVarChar(100), value: service_name },
-            { name: 'unit_price', type: mssql.Decimal(12, 2), value: unit_price },
-            { name: 'unit', type: mssql.NVarChar(20), value: unit }
-        ]);
+        try {
+            await executeProcedure('sp_UpdateService', params);
+        } catch (err) {
+            if (!isMissingStoredProcedureError(err)) throw err;
+            await executeQueryResult(
+                `UPDATE SERVICE
+                 SET service_name = @service_name, unit_price = @unit_price, unit = @unit
+                 WHERE service_id = @service_id`,
+                params
+            );
+        }
         res.json({ success: true });
     } catch (err) { res.status(500).send(err); }
 });
@@ -434,15 +710,22 @@ app.post('/api/services/update', async (req, res) => {
 // Create Service
 app.post('/api/services', async (req, res) => {
     const { service_name, unit_price, unit } = req.body;
+    const params: SqlParam[] = [
+        { name: 'service_name', type: mssql.NVarChar(100), value: service_name },
+        { name: 'unit_price', type: mssql.Decimal(12, 2), value: unit_price },
+        { name: 'unit', type: mssql.NVarChar(20), value: unit }
+    ];
     try {
-        await executeQuery(`
-            INSERT INTO SERVICE (service_name, unit_price, unit)
-            VALUES (@service_name, @unit_price, @unit)
-        `, [
-            { name: 'service_name', type: mssql.NVarChar(100), value: service_name },
-            { name: 'unit_price', type: mssql.Decimal(12, 2), value: unit_price },
-            { name: 'unit', type: mssql.NVarChar(20), value: unit }
-        ]);
+        try {
+            await executeProcedure('sp_CreateService', params);
+        } catch (err) {
+            if (!isMissingStoredProcedureError(err)) throw err;
+            await executeQueryResult(
+                `INSERT INTO SERVICE (service_name, unit_price, unit)
+                 VALUES (@service_name, @unit_price, @unit)`,
+                params
+            );
+        }
         res.status(201).json({ success: true });
     } catch (err) { res.status(500).send(err); }
 });
@@ -450,19 +733,30 @@ app.post('/api/services', async (req, res) => {
 // Delete Service
 app.delete('/api/services/:id', async (req, res) => {
     const { id } = req.params;
+    const serviceId = parseInt(id!);
     try {
-        // Check if service is referenced in any service usage
-        const usages = await executeQuery(
-            'SELECT COUNT(*) as count FROM SERVICE_USAGE WHERE service_id = @id',
-            [{ name: 'id', type: mssql.Int, value: parseInt(id!) }]
-        );
-        if (usages[0].count > 0) {
-            return res.status(409).json({ error: 'Dịch vụ này đang được sử dụng trong lịch sử, không thể xóa.' });
-        }
+        try {
+            await executeProcedure('sp_DeleteService', [
+                { name: 'service_id', type: mssql.Int, value: serviceId }
+            ]);
+        } catch (err) { 
+            if ((err as any).number === 50004) {
+                return res.status(409).json({ error: (err as any).message });
+            }
+            if (!isMissingStoredProcedureError(err)) throw err;
 
-        await executeQuery('DELETE FROM SERVICE WHERE service_id = @id', [
-            { name: 'id', type: mssql.Int, value: parseInt(id!) }
-        ]);
+            const usages = await executeQuery(
+                'SELECT COUNT(*) as count FROM SERVICE_USAGE WHERE service_id = @id',
+                [{ name: 'id', type: mssql.Int, value: serviceId }]
+            );
+            if (usages[0]?.count > 0) {
+                return res.status(409).json({ error: 'Dịch vụ này đang được sử dụng trong lịch sử, không thể xóa.' });
+            }
+
+            await executeQueryResult('DELETE FROM SERVICE WHERE service_id = @id', [
+                { name: 'id', type: mssql.Int, value: serviceId }
+            ]);
+        }
         res.json({ success: true });
     } catch (err) { res.status(500).send(err); }
 });
@@ -470,19 +764,30 @@ app.delete('/api/services/:id', async (req, res) => {
 // Delete Guest
 app.delete('/api/guests/:id', async (req, res) => {
     const { id } = req.params;
+    const guestId = parseInt(id!);
     try {
-        // Check if guest has any bookings
-        const bookings = await executeQuery(
-            'SELECT COUNT(*) as count FROM BOOKING WHERE guest_id = @id',
-            [{ name: 'id', type: mssql.Int, value: parseInt(id!) }]
-        );
-        if (bookings[0].count > 0) {
-            return res.status(409).json({ error: 'Khách hàng này đang có booking, không thể xóa.' });
-        }
+        try {
+            await executeProcedure('sp_DeleteGuest', [
+                { name: 'guest_id', type: mssql.Int, value: guestId }
+            ]);
+        } catch (err) { 
+            if ((err as any).number === 50002) {
+                return res.status(409).json({ error: (err as any).message });
+            }
+            if (!isMissingStoredProcedureError(err)) throw err;
 
-        await executeQuery('DELETE FROM GUEST WHERE guest_id = @id', [
-            { name: 'id', type: mssql.Int, value: parseInt(id!) }
-        ]);
+            const bookings = await executeQuery(
+                'SELECT COUNT(*) as count FROM BOOKING WHERE guest_id = @id',
+                [{ name: 'id', type: mssql.Int, value: guestId }]
+            );
+            if (bookings[0]?.count > 0) {
+                return res.status(409).json({ error: 'Khách hàng này đang có booking, không thể xóa.' });
+            }
+
+            await executeQueryResult('DELETE FROM GUEST WHERE guest_id = @id', [
+                { name: 'id', type: mssql.Int, value: guestId }
+            ]);
+        }
         res.json({ success: true });
     } catch (err) { res.status(500).send(err); }
 });
@@ -491,14 +796,24 @@ app.delete('/api/guests/:id', async (req, res) => {
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
     try {
-        const query = "SELECT * FROM EMPLOYEE WHERE username = @username AND password_hash = @password";
-        const result = await executeQuery(query, [
+        const params: SqlParam[] = [
             { name: 'username', type: mssql.NVarChar(50), value: username },
-            { name: 'password', type: mssql.NVarChar(255), value: password }
-        ]);
+            { name: 'password', type: mssql.NVarChar(256), value: password }
+        ];
 
-        if (result.length > 0) {
-            res.json(result[0]);
+        let users;
+        try {
+            users = (await executeProcedure('sp_Login', params)).recordset;
+        } catch (err) {
+            if (!isMissingStoredProcedureError(err)) throw err;
+            users = await executeQuery(
+                'SELECT * FROM EMPLOYEE WHERE username = @username AND password_hash = @password',
+                params
+            );
+        }
+
+        if (users.length > 0) {
+            res.json(users[0]);
         } else {
             res.status(401).json({ error: 'Invalid credentials' });
         }
@@ -509,35 +824,57 @@ app.post('/api/login', async (req, res) => {
 app.post('/api/employees/change-password', async (req, res) => {
     const { emp_id, current_password, new_password } = req.body;
     try {
-        const checkQuery = "SELECT * FROM EMPLOYEE WHERE emp_id = @emp_id AND password_hash = @current_password";
-        const user = await executeQuery(checkQuery, [
+        const params: SqlParam[] = [
             { name: 'emp_id', type: mssql.Int, value: emp_id },
-            { name: 'current_password', type: mssql.NVarChar(255), value: current_password }
-        ]);
+            { name: 'current_password', type: mssql.NVarChar(256), value: current_password },
+            { name: 'new_password', type: mssql.NVarChar(256), value: new_password }
+        ];
 
-        if (user.length === 0) {
-            return res.status(401).json({ error: 'Current password incorrect' });
+        try {
+            await executeProcedure('sp_ChangePassword', params);
+        } catch (err) { 
+            if ((err as any).number === 50003) {
+                return res.status(401).json({ error: (err as any).message });
+            }
+            if (!isMissingStoredProcedureError(err)) throw err;
+
+            const user = await executeQuery(
+                'SELECT * FROM EMPLOYEE WHERE emp_id = @emp_id AND password_hash = @current_password',
+                [
+                    { name: 'emp_id', type: mssql.Int, value: emp_id },
+                    { name: 'current_password', type: mssql.NVarChar(256), value: current_password }
+                ]
+            );
+            if (user.length === 0) {
+                return res.status(401).json({ error: 'Current password incorrect' });
+            }
+
+            await executeQueryResult(
+                'UPDATE EMPLOYEE SET password_hash = @new_password WHERE emp_id = @emp_id',
+                [
+                    { name: 'emp_id', type: mssql.Int, value: emp_id },
+                    { name: 'new_password', type: mssql.NVarChar(256), value: new_password }
+                ]
+            );
         }
-
-        const updateQuery = "UPDATE EMPLOYEE SET password_hash = @new_password WHERE emp_id = @emp_id";
-        await executeQuery(updateQuery, [
-            { name: 'emp_id', type: mssql.Int, value: emp_id },
-            { name: 'new_password', type: mssql.NVarChar(255), value: new_password }
-        ]);
-
         res.json({ success: true });
     } catch (err) { res.status(500).send(err); }
 });
 
-
 // Cancel Booking
 app.post('/api/bookings/cancel', async (req, res) => {
     const { booking_id } = req.body;
+    const params: SqlParam[] = [{ name: 'booking_id', type: mssql.Int, value: booking_id }];
     try {
-        await executeQuery(
-            "UPDATE BOOKING SET status = N'Cancelled' WHERE booking_id = @booking_id AND status IN (N'Pending', N'Confirmed')",
-            [{ name: 'booking_id', type: mssql.Int, value: booking_id }]
-        );
+        try {
+            await executeProcedure('sp_CancelBooking', params);
+        } catch (err) {
+            if (!isMissingStoredProcedureError(err)) throw err;
+            await executeQueryResult(
+                "UPDATE BOOKING SET status = N'Cancelled' WHERE booking_id = @booking_id AND status IN (N'Pending', N'Confirmed')",
+                params
+            );
+        }
         res.json({ success: true });
     } catch (err) { res.status(500).send(err); }
 });
@@ -545,11 +882,17 @@ app.post('/api/bookings/cancel', async (req, res) => {
 // Confirm Booking
 app.post('/api/bookings/confirm', async (req, res) => {
     const { booking_id } = req.body;
+    const params: SqlParam[] = [{ name: 'booking_id', type: mssql.Int, value: booking_id }];
     try {
-        await executeQuery(
-            "UPDATE BOOKING SET status = N'Confirmed' WHERE booking_id = @booking_id AND status = N'Pending'",
-            [{ name: 'booking_id', type: mssql.Int, value: booking_id }]
-        );
+        try {
+            await executeProcedure('sp_ConfirmBooking', params);
+        } catch (err) {
+            if (!isMissingStoredProcedureError(err)) throw err;
+            await executeQueryResult(
+                "UPDATE BOOKING SET status = N'Confirmed' WHERE booking_id = @booking_id AND status = N'Pending'",
+                params
+            );
+        }
         res.json({ success: true });
     } catch (err) { res.status(500).send(err); }
 });

@@ -1,5 +1,5 @@
 import { DB, formatVND, formatDateTime, getRoomType, getRoom, getGuest, getInitials, fetchDB } from '../data';
-import { showModal, closeModal, showToast, navigateTo } from '../ui';
+import { showModal, closeModal, showToast, navigateTo, getCurrentUser } from '../ui';
 import { apiPost } from '../api';
 
 export function renderRooms(): string {
@@ -40,7 +40,18 @@ export function renderRooms(): string {
     `).join('')}
 
     <div class="section-panel glass-panel" style="margin-top: var(--space-xl)">
-      <div class="section-header"><div><h3 class="section-title">Danh mục loại phòng</h3><p class="section-subtitle">Bảng giá và thông tin</p></div></div>
+      <div class="section-header">
+        <div>
+          <h3 class="section-title">Danh mục loại phòng</h3>
+          <p class="section-subtitle">Bảng giá và thông tin</p>
+        </div>
+        ${(getCurrentUser()?.role === 'Admin' || getCurrentUser()?.role === 'Manager') ? `
+          <button class="btn btn-outline" id="addRoomTypeBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;margin-right:4px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Thêm loại phòng
+          </button>
+        ` : ''}
+      </div>
       <div class="data-table-wrapper">
         <table class="data-table">
           <thead><tr><th>Mã</th><th>Loại phòng</th><th>Giá niêm yết</th><th>Sức chứa</th><th>Mô tả</th><th>Số phòng</th></tr></thead>
@@ -213,6 +224,49 @@ export function initRoomsEvents(): void {
           })();
         }
       });
+    });
+  });
+
+  document.getElementById('addRoomTypeBtn')?.addEventListener('click', () => {
+    showModal('Thêm loại phòng mới', `
+      <div class="form-group">
+        <label class="form-label">Tên loại phòng *</label>
+        <input class="form-input" id="newRoomTypeName" placeholder="Ví dụ: Penthouse">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Giá niêm yết *</label>
+          <input class="form-input" id="newRoomTypePrice" type="number" placeholder="5000000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sức chứa (người) *</label>
+          <input class="form-input" id="newRoomTypeCapacity" type="number" min="1" placeholder="4">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mô tả</label>
+        <textarea class="form-input" id="newRoomTypeDesc" rows="3" placeholder="Mô tả về loại phòng..."></textarea>
+      </div>
+    `, async () => {
+      const name = (document.getElementById('newRoomTypeName') as HTMLInputElement).value.trim();
+      const price = parseFloat((document.getElementById('newRoomTypePrice') as HTMLInputElement).value);
+      const capacity = parseInt((document.getElementById('newRoomTypeCapacity') as HTMLInputElement).value);
+      const desc = (document.getElementById('newRoomTypeDesc') as HTMLTextAreaElement).value.trim();
+
+      if (!name || isNaN(price) || isNaN(capacity)) {
+        showToast('Vui lòng điền đầy đủ các trường bắt buộc', 'error');
+        return;
+      }
+
+      try {
+        await apiPost('/room-types', { type_name: name, base_price: price, max_capacity: capacity, description: desc });
+        await fetchDB();
+        showToast(`Thêm loại phòng ${name} thành công!`, 'success');
+        closeModal();
+        navigateTo('rooms');
+      } catch (err) {
+        showToast('Lỗi khi thêm loại phòng', 'error');
+      }
     });
   });
 }

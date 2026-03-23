@@ -4,6 +4,29 @@
 -- BASIC SQL (SQL SERVER COMPATIBLE)
 -- =============================================
 
+CREATE DATABASE HotelDB;
+GO
+
+USE HotelDB;
+GO
+
+ALTER DATABASE SCOPED CONFIGURATION SET IDENTITY_CACHE = OFF;
+GO
+
+-- =============================================
+-- DROP existing tables (reverse FK order)
+-- =============================================
+DROP TABLE IF EXISTS INVOICE;
+DROP TABLE IF EXISTS SERVICE_USAGE;
+DROP TABLE IF EXISTS BOOKING_DETAIL;
+DROP TABLE IF EXISTS BOOKING;
+DROP TABLE IF EXISTS SERVICE;
+DROP TABLE IF EXISTS EMPLOYEE;
+DROP TABLE IF EXISTS GUEST;
+DROP TABLE IF EXISTS ROOM;
+DROP TABLE IF EXISTS ROOM_TYPE;
+GO
+
 -- =============================================
 -- 1. ROOM_TYPE - Loai phong
 -- =============================================

@@ -1,5 +1,5 @@
 import { DB, formatVND, formatDate, formatDateTime, getGuest, getRoom, getRoomType, getInitials, getService, fetchDB } from '../data';
-import { showModal, closeModal, showToast, navigateTo } from '../ui';
+import { showModal, closeModal, showToast, navigateTo, getCurrentUser } from '../ui';
 import { apiPost } from '../api';
 
 export function renderBookings(): string {
@@ -108,6 +108,8 @@ export function initBookingsEvents(): void {
       const co = (document.getElementById('bookCheckout') as HTMLInputElement).value;
       const selectedRooms = [...document.querySelectorAll<HTMLInputElement>('#roomSelectGrid input:checked')].map(i => parseInt(i.value));
       const deposit = parseInt((document.getElementById('bookDeposit') as HTMLInputElement).value) || 0;
+      const currentUser = getCurrentUser();
+      const empId = currentUser && currentUser.emp_id > 0 ? currentUser.emp_id : 2;
 
       if (!ci || !co) { showToast('Vui lòng chọn ngày check-in/check-out', 'error'); return; }
       if (selectedRooms.length === 0) { showToast('Vui lòng chọn ít nhất 1 phòng', 'error'); return; }
@@ -115,18 +117,18 @@ export function initBookingsEvents(): void {
       try {
         const { booking_id } = await apiPost<{ booking_id: number }>('/bookings', {
           guest_id: gid,
-          emp_id: 2, // Mock current user
+          emp_id: empId,
           expected_checkin: ci + ' 14:00',
           expected_checkout: co + ' 12:00',
           total_deposit: deposit,
-          rooms: selectedRooms // We'll need to handle detail insertion in backend or separate calls
+          rooms: selectedRooms
         });
 
         await fetchDB();
         showToast(`Tạo booking #${booking_id} thành công!`, 'success');
         closeModal(); navigateTo('bookings');
-      } catch (err) {
-        showToast('Lỗi khi tạo booking', 'error');
+      } catch (err: any) {
+        showToast(err?.message || 'Lỗi khi tạo booking', 'error');
       }
     });
   });

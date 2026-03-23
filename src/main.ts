@@ -31,7 +31,7 @@ const $container = () => document.getElementById('pageContainer')!;
 const $title = () => document.getElementById('pageTitle')!;
 const $sidebar = () => document.getElementById('sidebar')!;
 
-import { closeModal, navigateTo, initTheme, toggleTheme, toggleNotifications, getCurrentUser, checkPermission, logout } from './ui';
+import { closeModal, navigateTo, initTheme, toggleTheme, toggleNotifications, getCurrentUser, checkPermission, logout, showToast } from './ui';
 
 
 function handleRoute(): void {
@@ -122,10 +122,13 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('hashchange', handleRoute);
 
     // Fetch data before first render
-    import('./data').then(({ fetchDB }) => {
-        fetchDB().then(() => {
+    import('./data').then((dataModule) => {
+        dataModule.fetchDB().then(() => {
             handleRoute();
             initSearch();
+            if (dataModule.lastFetchError) {
+                showToast('Không tải được dữ liệu từ API. Kiểm tra backend và SQL Server.', 'warning');
+            }
         });
     });
 
@@ -163,5 +166,3 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('sidebarBackdrop')?.classList.remove('active');
     });
 });
-
-
