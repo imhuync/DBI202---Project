@@ -1,7 +1,4 @@
--- =============================================
--- TEST SCRIPT CHO CÁC STORED PROCEDURES
--- Data mẫu và các trường hợp cơ bản
--- =============================================
+
 USE HotelDB;
 GO
 
