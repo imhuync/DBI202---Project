@@ -1,8 +1,7 @@
 
--- =============================================
 -- HOTEL MANAGEMENT SYSTEM - DATABASE SCHEMA
 -- BASIC SQL (SQL SERVER COMPATIBLE)
--- =============================================
+
 
 CREATE DATABASE HotelDB;
 GO
@@ -13,9 +12,8 @@ GO
 ALTER DATABASE SCOPED CONFIGURATION SET IDENTITY_CACHE = OFF;
 GO
 
--- =============================================
 -- DROP existing tables (reverse FK order)
--- =============================================
+
 DROP TABLE IF EXISTS INVOICE;
 DROP TABLE IF EXISTS SERVICE_USAGE;
 DROP TABLE IF EXISTS BOOKING_DETAIL;
@@ -27,9 +25,8 @@ DROP TABLE IF EXISTS ROOM;
 DROP TABLE IF EXISTS ROOM_TYPE;
 GO
 
--- =============================================
 -- 1. ROOM_TYPE - Loai phong
--- =============================================
+
 CREATE TABLE ROOM_TYPE
 (
     type_id INT IDENTITY(1,1) PRIMARY KEY,
@@ -39,9 +36,8 @@ CREATE TABLE ROOM_TYPE
     description NVARCHAR(500) NULL
 );
 
--- =============================================
 -- 2. ROOM - Phong
--- =============================================
+
 CREATE TABLE ROOM
 (
     room_id INT IDENTITY(1,1) PRIMARY KEY,
@@ -55,9 +51,8 @@ CREATE TABLE ROOM
         FOREIGN KEY (type_id) REFERENCES ROOM_TYPE(type_id)
 );
 
--- =============================================
 -- 3. GUEST - Khach hang
--- =============================================
+
 CREATE TABLE GUEST
 (
     guest_id INT IDENTITY(1,1) PRIMARY KEY,
@@ -68,9 +63,8 @@ CREATE TABLE GUEST
     nationality NVARCHAR(50) NULL DEFAULT 'Vietnam'
 );
 
--- =============================================
 -- 4. EMPLOYEE - Nhan vien
--- =============================================
+
 CREATE TABLE EMPLOYEE
 (
     emp_id INT IDENTITY(1,1) PRIMARY KEY,
@@ -81,9 +75,8 @@ CREATE TABLE EMPLOYEE
     password_hash NVARCHAR(256) NOT NULL
 );
 
--- =============================================
 -- 5. BOOKING - Don dat phong
--- =============================================
+
 CREATE TABLE BOOKING
 (
     booking_id INT IDENTITY(1,1) PRIMARY KEY,
@@ -104,9 +97,8 @@ CREATE TABLE BOOKING
         CHECK (expected_checkout > expected_checkin)
 );
 
--- =============================================
 -- 6. BOOKING_DETAIL - Chi tiet dat phong
--- =============================================
+
 CREATE TABLE BOOKING_DETAIL
 (
     detail_id INT IDENTITY(1,1) PRIMARY KEY,
@@ -122,9 +114,8 @@ CREATE TABLE BOOKING_DETAIL
         FOREIGN KEY (room_id) REFERENCES ROOM(room_id)
 );
 
--- =============================================
 -- 7. SERVICE - Dich vu
--- =============================================
+
 CREATE TABLE SERVICE
 (
     service_id INT IDENTITY(1,1) PRIMARY KEY,
@@ -133,9 +124,8 @@ CREATE TABLE SERVICE
     unit NVARCHAR(30) NOT NULL
 );
 
--- =============================================
 -- 8. SERVICE_USAGE - Su dung dich vu
--- =============================================
+
 CREATE TABLE SERVICE_USAGE
 (
     usage_id INT IDENTITY(1,1) PRIMARY KEY,
@@ -151,9 +141,8 @@ CREATE TABLE SERVICE_USAGE
         FOREIGN KEY (service_id) REFERENCES SERVICE(service_id)
 );
 
--- =============================================
 -- 9. INVOICE - Hoa don
--- =============================================
+
 CREATE TABLE INVOICE
 (
     invoice_id INT IDENTITY(1,1) PRIMARY KEY,
@@ -171,9 +160,8 @@ CREATE TABLE INVOICE
         FOREIGN KEY (booking_id) REFERENCES BOOKING(booking_id)
 );
 
--- =============================================
 -- INDEXES
--- =============================================
+
 CREATE INDEX IX_ROOM_type_id ON ROOM(type_id);
 CREATE INDEX IX_ROOM_status ON ROOM(status);
 CREATE INDEX IX_BOOKING_guest_id ON BOOKING(guest_id);
