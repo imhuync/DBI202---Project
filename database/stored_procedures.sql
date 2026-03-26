@@ -1,14 +1,12 @@
--- =============================================
+
 -- HOTEL MANAGEMENT SYSTEM - PROCEDURES & VIEWS
--- BASIC SQL (SQL SERVER COMPATIBLE)
--- =============================================
+
 
 USE HotelDB;
 GO
 
--- =============================================
 -- DROP all procedures first (clean slate)
--- =============================================
+
 DROP PROCEDURE IF EXISTS sp_GetAllRoomTypes;
 DROP PROCEDURE IF EXISTS sp_CreateRoomType;
 DROP PROCEDURE IF EXISTS sp_GetAllRooms;
@@ -53,7 +51,8 @@ GO
 CREATE PROCEDURE sp_GetAllRoomTypes
 AS
 BEGIN
-    SELECT * FROM ROOM_TYPE;
+    SELECT *
+    FROM ROOM_TYPE;
 END;
 GO
 
@@ -64,8 +63,10 @@ CREATE PROCEDURE sp_CreateRoomType
     @description    NVARCHAR(500)
 AS
 BEGIN
-    INSERT INTO ROOM_TYPE (type_name, base_price, max_capacity, description)
-    VALUES (@type_name, @base_price, @max_capacity, @description);
+    INSERT INTO ROOM_TYPE
+        (type_name, base_price, max_capacity, description)
+    VALUES
+        (@type_name, @base_price, @max_capacity, @description);
 END;
 GO
 
@@ -77,7 +78,7 @@ AS
 BEGIN
     SELECT r.*, rt.type_name, rt.base_price
     FROM ROOM r
-    JOIN ROOM_TYPE rt ON r.type_id = rt.type_id;
+        JOIN ROOM_TYPE rt ON r.type_id = rt.type_id;
 END;
 GO
 
@@ -88,8 +89,10 @@ CREATE PROCEDURE sp_CreateRoom
     @status         NVARCHAR(20)
 AS
 BEGIN
-    INSERT INTO ROOM (room_number, floor, type_id, status)
-    VALUES (@room_number, @floor, @type_id, ISNULL(@status, 'Clean'));
+    INSERT INTO ROOM
+        (room_number, floor, type_id, status)
+    VALUES
+        (@room_number, @floor, @type_id, ISNULL(@status, 'Clean'));
 END;
 GO
 
@@ -119,7 +122,9 @@ CREATE PROCEDURE sp_DeleteRoom
     @room_id        INT
 AS
 BEGIN
-    IF EXISTS (SELECT 1 FROM BOOKING_DETAIL WHERE room_id = @room_id)
+    IF EXISTS (SELECT 1
+    FROM BOOKING_DETAIL
+    WHERE room_id = @room_id)
         THROW 50001, N'Phòng này đã từng có khách đặt hoặc đang ở, không thể xóa để đảm bảo toàn vẹn dữ liệu.', 1;
     DELETE FROM ROOM WHERE room_id = @room_id;
 END;
@@ -131,7 +136,8 @@ GO
 CREATE PROCEDURE sp_GetAllGuests
 AS
 BEGIN
-    SELECT * FROM GUEST;
+    SELECT *
+    FROM GUEST;
 END;
 GO
 
@@ -143,8 +149,10 @@ CREATE PROCEDURE sp_CreateGuest
     @nationality    NVARCHAR(50)
 AS
 BEGIN
-    INSERT INTO GUEST (full_name, email, phone, id_card, nationality)
-    VALUES (@full_name, @email, @phone, @id_card, ISNULL(@nationality, N'Vietnam'));
+    INSERT INTO GUEST
+        (full_name, email, phone, id_card, nationality)
+    VALUES
+        (@full_name, @email, @phone, @id_card, ISNULL(@nationality, N'Vietnam'));
 END;
 GO
 
@@ -168,7 +176,9 @@ CREATE PROCEDURE sp_DeleteGuest
     @guest_id       INT
 AS
 BEGIN
-    IF EXISTS (SELECT 1 FROM BOOKING WHERE guest_id = @guest_id)
+    IF EXISTS (SELECT 1
+    FROM BOOKING
+    WHERE guest_id = @guest_id)
         THROW 50002, N'Khách hàng này đang có booking, không thể xóa.', 1;
     DELETE FROM GUEST WHERE guest_id = @guest_id;
 END;
@@ -180,7 +190,8 @@ GO
 CREATE PROCEDURE sp_GetAllEmployees
 AS
 BEGIN
-    SELECT emp_id, full_name, role, username FROM EMPLOYEE;
+    SELECT emp_id, full_name, role, username
+    FROM EMPLOYEE;
 END;
 GO
 
@@ -191,8 +202,10 @@ CREATE PROCEDURE sp_CreateEmployee
     @password_hash  NVARCHAR(256)
 AS
 BEGIN
-    INSERT INTO EMPLOYEE (full_name, role, username, password_hash)
-    VALUES (@full_name, @role, @username, @password_hash);
+    INSERT INTO EMPLOYEE
+        (full_name, role, username, password_hash)
+    VALUES
+        (@full_name, @role, @username, @password_hash);
 END;
 GO
 
@@ -231,7 +244,8 @@ CREATE PROCEDURE sp_Login
     @password       NVARCHAR(256)
 AS
 BEGIN
-    SELECT * FROM EMPLOYEE
+    SELECT *
+    FROM EMPLOYEE
     WHERE username = @username AND password_hash = @password;
 END;
 GO
@@ -243,8 +257,9 @@ CREATE PROCEDURE sp_ChangePassword
 AS
 BEGIN
     IF NOT EXISTS (
-        SELECT 1 FROM EMPLOYEE
-        WHERE emp_id = @emp_id AND password_hash = @current_password
+        SELECT 1
+    FROM EMPLOYEE
+    WHERE emp_id = @emp_id AND password_hash = @current_password
     )
         THROW 50003, N'Current password incorrect', 1;
     UPDATE EMPLOYEE SET password_hash = @new_password WHERE emp_id = @emp_id;
@@ -257,7 +272,8 @@ GO
 CREATE PROCEDURE sp_GetAllServices
 AS
 BEGIN
-    SELECT * FROM SERVICE;
+    SELECT *
+    FROM SERVICE;
 END;
 GO
 
@@ -267,8 +283,10 @@ CREATE PROCEDURE sp_CreateService
     @unit           NVARCHAR(20)
 AS
 BEGIN
-    INSERT INTO SERVICE (service_name, unit_price, unit)
-    VALUES (@service_name, @unit_price, @unit);
+    INSERT INTO SERVICE
+        (service_name, unit_price, unit)
+    VALUES
+        (@service_name, @unit_price, @unit);
 END;
 GO
 
@@ -289,7 +307,9 @@ CREATE PROCEDURE sp_DeleteService
     @service_id     INT
 AS
 BEGIN
-    IF EXISTS (SELECT 1 FROM SERVICE_USAGE WHERE service_id = @service_id)
+    IF EXISTS (SELECT 1
+    FROM SERVICE_USAGE
+    WHERE service_id = @service_id)
         THROW 50004, N'Dịch vụ này đang được sử dụng trong lịch sử, không thể xóa.', 1;
     DELETE FROM SERVICE WHERE service_id = @service_id;
 END;
@@ -301,14 +321,16 @@ GO
 CREATE PROCEDURE sp_GetAllBookings
 AS
 BEGIN
-    SELECT * FROM BOOKING;
+    SELECT *
+    FROM BOOKING;
 END;
 GO
 
 CREATE PROCEDURE sp_GetAllBookingDetails
 AS
 BEGIN
-    SELECT * FROM BOOKING_DETAIL;
+    SELECT *
+    FROM BOOKING_DETAIL;
 END;
 GO
 
@@ -320,9 +342,12 @@ CREATE PROCEDURE sp_CreateBooking
     @deposit        DECIMAL(12,2)
 AS
 BEGIN
-    INSERT INTO BOOKING (guest_id, emp_id, booking_date, expected_checkin, expected_checkout, status, total_deposit)
-    OUTPUT INSERTED.booking_id
-    VALUES (@guest_id, @emp_id, GETDATE(), @checkin, @checkout, N'Pending', @deposit);
+    INSERT INTO BOOKING
+        (guest_id, emp_id, booking_date, expected_checkin, expected_checkout, status, total_deposit)
+    OUTPUT
+    INSERTED.booking_id
+    VALUES
+        (@guest_id, @emp_id, GETDATE(), @checkin, @checkout, N'Pending', @deposit);
 END;
 GO
 
@@ -331,12 +356,13 @@ CREATE PROCEDURE sp_AddBookingDetail
     @room_id        INT
 AS
 BEGIN
-    INSERT INTO BOOKING_DETAIL (booking_id, room_id, price_at_booking)
+    INSERT INTO BOOKING_DETAIL
+        (booking_id, room_id, price_at_booking)
     SELECT @booking_id, r.room_id, rt.base_price
     FROM ROOM r
-    JOIN ROOM_TYPE rt ON r.type_id = rt.type_id
+        JOIN ROOM_TYPE rt ON r.type_id = rt.type_id
     WHERE r.room_id = @room_id
-      AND r.status = N'Clean';
+        AND r.status = N'Clean';
 
     IF @@ROWCOUNT = 0
         THROW 50005, N'Phòng không tồn tại hoặc hiện không sẵn sàng để đặt.', 1;
@@ -371,7 +397,8 @@ BEGIN
 
         DECLARE @room_id INT, @booking_id INT;
         SELECT @room_id = room_id, @booking_id = booking_id
-        FROM BOOKING_DETAIL WHERE detail_id = @detail_id;
+    FROM BOOKING_DETAIL
+    WHERE detail_id = @detail_id;
 
         UPDATE ROOM SET status = N'Occupied' WHERE room_id = @room_id;
 
@@ -396,7 +423,9 @@ BEGIN
         UPDATE BOOKING_DETAIL SET actual_checkout = GETDATE() WHERE detail_id = @detail_id;
 
         DECLARE @room_id INT;
-        SELECT @room_id = room_id FROM BOOKING_DETAIL WHERE detail_id = @detail_id;
+        SELECT @room_id = room_id
+    FROM BOOKING_DETAIL
+    WHERE detail_id = @detail_id;
 
         UPDATE ROOM SET status = N'Dirty' WHERE room_id = @room_id;
 
@@ -415,7 +444,8 @@ GO
 CREATE PROCEDURE sp_GetAllServiceUsages
 AS
 BEGIN
-    SELECT * FROM SERVICE_USAGE;
+    SELECT *
+    FROM SERVICE_USAGE;
 END;
 GO
 
@@ -425,9 +455,11 @@ CREATE PROCEDURE sp_AddServiceUsage
     @quantity       INT
 AS
 BEGIN
-    INSERT INTO SERVICE_USAGE (booking_detail_id, service_id, quantity, used_at, total_price)
+    INSERT INTO SERVICE_USAGE
+        (booking_detail_id, service_id, quantity, used_at, total_price)
     SELECT @detail_id, @service_id, @quantity, GETDATE(), @quantity * unit_price
-    FROM SERVICE WHERE service_id = @service_id;
+    FROM SERVICE
+    WHERE service_id = @service_id;
 END;
 GO
 
@@ -437,7 +469,8 @@ GO
 CREATE PROCEDURE sp_GetAllInvoices
 AS
 BEGIN
-    SELECT * FROM INVOICE;
+    SELECT *
+    FROM INVOICE;
 END;
 GO
 
@@ -457,18 +490,21 @@ BEGIN
                 @final          DECIMAL(12,2);
 
         SELECT @room_charge = COALESCE(SUM(price_at_booking), 0)
-        FROM BOOKING_DETAIL WHERE booking_id = @booking_id;
+    FROM BOOKING_DETAIL
+    WHERE booking_id = @booking_id;
 
         SELECT @service_charge = COALESCE(SUM(su.total_price), 0)
-        FROM SERVICE_USAGE su
+    FROM SERVICE_USAGE su
         JOIN BOOKING_DETAIL bd ON su.booking_detail_id = bd.detail_id
-        WHERE bd.booking_id = @booking_id;
+    WHERE bd.booking_id = @booking_id;
 
         SET @tax   = (@room_charge + @service_charge) * 0.1;
         SET @final = (@room_charge + @service_charge) + @tax - ISNULL(@discount, 0);
 
-        INSERT INTO INVOICE (booking_id, room_charge, service_charge, tax_amount, discount_amount, final_amount, payment_date, payment_method)
-        VALUES (@booking_id, @room_charge, @service_charge, @tax, ISNULL(@discount, 0), @final, GETDATE(), @method);
+        INSERT INTO INVOICE
+        (booking_id, room_charge, service_charge, tax_amount, discount_amount, final_amount, payment_date, payment_method)
+    VALUES
+        (@booking_id, @room_charge, @service_charge, @tax, ISNULL(@discount, 0), @final, GETDATE(), @method);
 
         UPDATE BOOKING SET status = N'Completed' WHERE booking_id = @booking_id;
 
@@ -490,13 +526,13 @@ CREATE VIEW vw_RoomStatus
 AS
     SELECT r.room_number, rt.type_name, r.status, r.floor, rt.base_price
     FROM ROOM r
-    JOIN ROOM_TYPE rt ON r.type_id = rt.type_id;
+        JOIN ROOM_TYPE rt ON r.type_id = rt.type_id;
 GO
 
 CREATE VIEW vw_ActiveBookings
 AS
     SELECT b.booking_id, g.full_name, b.expected_checkin, b.expected_checkout, b.status
     FROM BOOKING b
-    JOIN GUEST g ON b.guest_id = g.guest_id
+        JOIN GUEST g ON b.guest_id = g.guest_id
     WHERE b.status IN (N'Pending', N'Confirmed');
 GO
